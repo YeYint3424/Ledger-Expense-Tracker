@@ -1,13 +1,10 @@
-/* =========================================================
-   GROUP DETAIL PAGE
-   ========================================================= */
 const groupId = new URLSearchParams(location.search).get('id');
 let currentUserId = null;
 let currentGroup = null;
 
 if (!groupId) location.href = 'groups.html';
 
-/* ---- header / members / balances ---- */
+/* ---- header / members ---- */
 
 async function loadGroupHeader() {
   const [group, categories] = await Promise.all([getGroup(groupId), getGroupCategories()]);
@@ -34,41 +31,72 @@ async function loadGroupHeader() {
   `;
 
   renderMembers(group);
-  populateExpenseFormMemberFields(group);
 }
 
 function renderMembers(group) {
   const isAdmin = group.members.some((m) => m.userId === currentUserId && m.role === 'admin');
   document.getElementById('memberList').innerHTML = group.members.map((m) => `
-    <div class="member-chip">
-      <div>
-        <span class="member-chip-name">${escapeHtml(m.name)}</span>
-        <span class="member-chip-role">${m.role === 'admin' ? 'Admin' : ''}</span>
-        <div class="member-chip-email">${escapeHtml(m.email)}</div>
-      </div>
-      ${(isAdmin || m.userId === currentUserId) ? `<button class="btn-icon danger" data-remove-member="${m.userId}" title="${m.userId === currentUserId ? 'Leave group' : 'Remove'}">✕</button>` : ''}
-    </div>`).join('');
+    <span class="member-badge" title="${escapeHtml(m.email)}">
+      <span class="member-badge-name">${escapeHtml(m.name)}</span>
+      ${m.role === 'admin' ? '<span class="member-badge-role">Admin</span>' : ''}
+      ${(isAdmin || m.userId === currentUserId) ? `<button type="button" class="member-badge-remove" data-remove-member="${m.userId}" title="${m.userId === currentUserId ? 'Leave group' : 'Remove'}">✕</button>` : ''}
+    </span>`).join('');
 
   document.querySelectorAll('[data-remove-member]').forEach((btn) => {
     btn.addEventListener('click', () => removeMember(btn.dataset.removeMember));
   });
 }
 
-document.getElementById('addMemberForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const emailInput = document.getElementById('addMemberEmail');
-  try {
-    const group = await addGroupMember(groupId, emailInput.value.trim());
-    currentGroup = group;
-    emailInput.value = '';
-    showToast('Member added');
-    renderMembers(group);
-    populateExpenseFormMemberFields(group);
-    await loadGroupHeader();
-  } catch (err) {
-    showToast(err.message || 'Failed to add member.');
+function showAddMemberModal() {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'confirm-modal-backdrop';
+  backdrop.innerHTML = `
+    <div class="confirm-modal member-modal" role="dialog" aria-modal="true" aria-labelledby="addMemberModalTitle">
+      <h3 class="confirm-modal-title" id="addMemberModalTitle">Add a member</h3>
+      <form id="addMemberModalForm">
+        <div class="field">
+          <label for="addMemberEmail">Email address</label>
+          <input type="email" id="addMemberEmail" class="input" placeholder="someone@example.com" required />
+        </div>
+        <div class="confirm-modal-actions" style="margin-top: 20px">
+          <button type="button" class="btn btn-ghost" data-action="cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add</button>
+        </div>
+      </form>
+    </div>`;
+  document.body.appendChild(backdrop);
+
+  function cleanup() {
+    backdrop.remove();
+    document.removeEventListener('keydown', onKeydown);
   }
-});
+  function onKeydown(e) {
+    if (e.key === 'Escape') cleanup();
+  }
+  document.addEventListener('keydown', onKeydown);
+
+  backdrop.querySelector('[data-action="cancel"]').addEventListener('click', cleanup);
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) cleanup(); });
+
+  const emailInput = backdrop.querySelector('#addMemberEmail');
+  requestAnimationFrame(() => emailInput.focus());
+
+  backdrop.querySelector('#addMemberModalForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const group = await addGroupMember(groupId, emailInput.value.trim());
+      currentGroup = group;
+      showToast('Member added');
+      renderMembers(group);
+      await loadGroupHeader();
+      cleanup();
+    } catch (err) {
+      showToast(err.message || 'Failed to add member.');
+    }
+  });
+}
+
+document.getElementById('openAddMemberBtn').addEventListener('click', showAddMemberModal);
 
 async function removeMember(userId) {
   const leavingSelf = userId === currentUserId;
@@ -91,23 +119,13 @@ async function removeMember(userId) {
   }
 }
 
-async function renderBalances() {
+async function loadTotalSpent() {
   try {
-    const { balances, totalSpent } = await getGroupBalances(groupId);
+    const { totalSpent } = await getGroupBalances(groupId);
     const totalSpentFigure = document.getElementById('totalSpentFigure');
     if (totalSpentFigure) totalSpentFigure.textContent = formatMoney(totalSpent);
-
-    document.getElementById('balanceList').innerHTML = balances.map((b) => {
-      const cls = b.balance > 0.004 ? 'positive' : b.balance < -0.004 ? 'negative' : 'zero';
-      const label = b.balance > 0.004 ? 'is owed' : b.balance < -0.004 ? 'owes' : 'settled up';
-      return `
-        <div class="balance-row">
-          <span>${escapeHtml(b.name)} <span style="color:var(--ink-500); font-weight:400;">${label}</span></span>
-          <span class="balance-amount ${cls}">${formatMoney(Math.abs(b.balance))}</span>
-        </div>`;
-    }).join('');
   } catch (err) {
-    showToast(err.message || 'Failed to load balances.');
+    showToast(err.message || 'Failed to load total spent.');
   }
 }
 
@@ -117,21 +135,8 @@ function populateExpenseFormMemberFields(group) {
   const paidBySel = document.getElementById('expensePaidBy');
   paidBySel.innerHTML = group.members.map((m) => `<option value="${m.userId}">${escapeHtml(m.name)}</option>`).join('');
   paidBySel.value = currentUserId;
-
-  document.getElementById('splitBetweenList').innerHTML = group.members.map((m) => `
-    <label class="member-chip" style="cursor:pointer;">
-      <span class="member-chip-name">${escapeHtml(m.name)}</span>
-      <input type="checkbox" class="split-checkbox" value="${m.userId}" checked style="width:18px; height:18px;">
-    </label>`).join('');
 }
 
-/**
- * Populates the category select from the signed-in user's own personal categories
- * (the same list used on the Outcome form). `selected` can be omitted, a plain
- * category id (string), or a populated {id,name,color} object — the latter is
- * used when editing an expense whose category might belong to a different
- * member, so it's shown even if it's not in the current viewer's own list.
- */
 async function populateExpenseCategorySelect(selected) {
   const categories = await getCategories();
   let options = categories.map((c) => ({ id: c.id, name: c.name }));
@@ -155,7 +160,7 @@ async function populateExpenseCategorySelect(selected) {
   sel.value = selectedId || '';
 }
 
-document.getElementById('expenseCategorySelect').addEventListener('change', (e) => {
+function onExpenseCategoryChange(e) {
   const newInput = document.getElementById('expenseCategoryNew');
   const note = document.getElementById('expenseCategoryNewNote');
   if (e.target.value === '__new__') {
@@ -168,9 +173,9 @@ document.getElementById('expenseCategorySelect').addEventListener('change', (e) 
     newInput.value = '';
     note.hidden = true;
   }
-});
+}
 
-document.getElementById('expenseCategoryNew').addEventListener('input', async (e) => {
+async function onExpenseCategoryNewInput(e) {
   const note = document.getElementById('expenseCategoryNewNote');
   const trimmed = e.target.value.trim().toLowerCase();
   if (!trimmed) { note.hidden = true; return; }
@@ -182,75 +187,128 @@ document.getElementById('expenseCategoryNew').addEventListener('input', async (e
   } else {
     note.hidden = true;
   }
-});
-
-async function resetExpenseForm() {
-  document.getElementById('expenseId').value = '';
-  document.getElementById('expenseName').value = '';
-  document.getElementById('expenseAmount').value = '';
-  document.getElementById('expenseDate').value = todayISO();
-  document.getElementById('expenseTime').value = nowTime();
-  document.getElementById('expenseDescription').value = '';
-  document.getElementById('expenseCategoryNew').hidden = true;
-  document.getElementById('expenseCategoryNew').required = false;
-  document.getElementById('expenseCategoryNew').value = '';
-  document.getElementById('expenseCategoryNewNote').hidden = true;
-  await populateExpenseCategorySelect();
-  if (currentGroup) populateExpenseFormMemberFields(currentGroup);
 }
 
-document.getElementById('toggleExpenseFormBtn').addEventListener('click', async () => {
-  const form = document.getElementById('expenseForm');
-  const opening = form.hidden;
-  if (opening) await resetExpenseForm();
-  form.hidden = !opening;
-});
-document.getElementById('cancelExpenseFormBtn').addEventListener('click', () => {
-  document.getElementById('expenseForm').hidden = true;
-});
+function showExpenseModal(expense) {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'confirm-modal-backdrop';
+  backdrop.innerHTML = `
+    <div class="confirm-modal expense-modal" role="dialog" aria-modal="true" aria-labelledby="expenseModalTitle">
+      <h3 class="confirm-modal-title" id="expenseModalTitle">${expense ? 'Edit expense' : 'Add expense'}</h3>
+      <form id="expenseForm">
+        <input type="hidden" id="expenseId" />
+        <div class="field">
+          <label for="expenseName">Name<span class="req">*</span></label>
+          <input type="text" id="expenseName" class="input" required placeholder="e.g. Hotel" />
+        </div>
+        <div class="field">
+          <label for="expenseAmount">Amount<span class="req">*</span></label>
+          <input type="text" inputmode="decimal" id="expenseAmount" class="input" required placeholder="0.00" />
+        </div>
+        <div class="field">
+          <label for="expenseCategorySelect">Category<span class="req">*</span></label>
+          <select id="expenseCategorySelect" class="select" required>
+            <option value="" disabled selected>Choose a category…</option>
+            <option value="__new__">➕ Add new category…</option>
+          </select>
+          <input type="text" id="expenseCategoryNew" class="input" placeholder="Type new category name…" hidden style="margin-top: 8px" />
+          <span class="field-note" id="expenseCategoryNewNote" hidden></span>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="expenseDate">Date<span class="req">*</span></label>
+            <input type="date" id="expenseDate" class="input" required />
+          </div>
+          <div class="field">
+            <label for="expenseTime">Time<span class="req">*</span></label>
+            <input type="time" id="expenseTime" class="input" required />
+          </div>
+        </div>
+        <div class="field">
+          <label for="expensePaidBy">Paid by<span class="req">*</span></label>
+          <select id="expensePaidBy" class="select" required></select>
+        </div>
+        <div class="field">
+          <label for="expenseDescription">Description <span class="optional">(optional)</span></label>
+          <textarea id="expenseDescription" class="input textarea" rows="2"></textarea>
+        </div>
+        <div class="confirm-modal-actions" style="margin-top: 20px">
+          <button type="button" class="btn btn-ghost" data-action="cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">${expense ? 'Save changes' : 'Save expense'}</button>
+        </div>
+      </form>
+    </div>`;
+  document.body.appendChild(backdrop);
 
-document.getElementById('expenseForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const id = document.getElementById('expenseId').value;
+  function cleanup() {
+    backdrop.remove();
+    document.removeEventListener('keydown', onKeydown);
+  }
+  function onKeydown(e) {
+    if (e.key === 'Escape') cleanup();
+  }
+  document.addEventListener('keydown', onKeydown);
+  backdrop.querySelector('[data-action="cancel"]').addEventListener('click', cleanup);
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) cleanup(); });
 
-  let categoryId = document.getElementById('expenseCategorySelect').value;
-  if (categoryId === '__new__') {
-    const newName = document.getElementById('expenseCategoryNew').value.trim();
-    if (!newName) { showToast('Enter a category name'); return; }
-    try {
-      const { category } = await createCategory({ name: newName, color: randomCategoryColor() });
-      categoryId = category.id;
-    } catch (err) {
-      showToast(err.message || 'Failed to create category.');
-      return;
+  wireThousandsInput(document.getElementById('expenseAmount'));
+  document.getElementById('expenseCategorySelect').addEventListener('change', onExpenseCategoryChange);
+  document.getElementById('expenseCategoryNew').addEventListener('input', onExpenseCategoryNewInput);
+
+  (async () => {
+    populateExpenseFormMemberFields(currentGroup);
+    await populateExpenseCategorySelect(expense ? expense.category : undefined);
+    document.getElementById('expenseId').value = expense ? expense.id : '';
+    document.getElementById('expenseName').value = expense ? expense.name : '';
+    setAmountInputValue(document.getElementById('expenseAmount'), expense ? expense.amount : '');
+    document.getElementById('expenseDate').value = expense ? expense.date : todayISO();
+    document.getElementById('expenseTime').value = expense ? expense.time : nowTime();
+    document.getElementById('expenseDescription').value = expense ? (expense.description || '') : '';
+    if (expense) document.getElementById('expensePaidBy').value = expense.paidBy;
+    requestAnimationFrame(() => document.getElementById('expenseName').focus());
+  })();
+
+  document.getElementById('expenseForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('expenseId').value;
+
+    let categoryId = document.getElementById('expenseCategorySelect').value;
+    if (categoryId === '__new__') {
+      const newName = document.getElementById('expenseCategoryNew').value.trim();
+      if (!newName) { showToast('Enter a category name'); return; }
+      try {
+        const { category } = await createCategory({ name: newName, color: randomCategoryColor() });
+        categoryId = category.id;
+      } catch (err) {
+        showToast(err.message || 'Failed to create category.');
+        return;
+      }
     }
-  }
-  if (!categoryId) { showToast('Please choose a category'); return; }
+    if (!categoryId) { showToast('Please choose a category'); return; }
 
-  const splitBetween = Array.from(document.querySelectorAll('.split-checkbox:checked')).map((cb) => cb.value);
-  if (!splitBetween.length) { showToast('Pick at least one person to split with.'); return; }
+    const payload = {
+      name: document.getElementById('expenseName').value.trim(),
+      amount: parseAmountInput(document.getElementById('expenseAmount')),
+      date: document.getElementById('expenseDate').value,
+      time: document.getElementById('expenseTime').value,
+      description: document.getElementById('expenseDescription').value.trim(),
+      paidBy: document.getElementById('expensePaidBy').value,
+      categoryId,
+    };
 
-  const payload = {
-    name: document.getElementById('expenseName').value.trim(),
-    amount: parseFloat(document.getElementById('expenseAmount').value) || 0,
-    date: document.getElementById('expenseDate').value,
-    time: document.getElementById('expenseTime').value,
-    description: document.getElementById('expenseDescription').value.trim(),
-    paidBy: document.getElementById('expensePaidBy').value,
-    categoryId,
-    splitBetween,
-  };
+    try {
+      if (id) await updateGroupExpense(groupId, id, payload);
+      else await createGroupExpense(groupId, payload);
+      showToast(id ? 'Expense updated' : 'Expense added');
+      cleanup();
+      await Promise.all([renderExpenses(), loadTotalSpent(), loadGroupHeader()]);
+    } catch (err) {
+      showToast(err.message || 'Failed to save expense.');
+    }
+  });
+}
 
-  try {
-    if (id) await updateGroupExpense(groupId, id, payload);
-    else await createGroupExpense(groupId, payload);
-    document.getElementById('expenseForm').hidden = true;
-    showToast(id ? 'Expense updated' : 'Expense added');
-    await Promise.all([renderExpenses(), renderBalances(), loadGroupHeader()]);
-  } catch (err) {
-    showToast(err.message || 'Failed to save expense.');
-  }
-});
+document.getElementById('toggleExpenseFormBtn').addEventListener('click', () => showExpenseModal());
 
 async function renderExpenses() {
   const expenses = await getGroupExpenses(groupId);
@@ -266,7 +324,7 @@ async function renderExpenses() {
   empty.hidden = true;
 
   tbody.innerHTML = expenses.map((e) => {
-    const cat = e.categoryId; // populated by the server: {id, name, color}
+    const cat = e.category; // populated by the server: {id, name, color}
     const catChip = cat
       ? `<span class="cat-chip"><span class="cat-dot" style="background:${cat.color}"></span>${escapeHtml(cat.name)}</span>`
       : '<span class="cat-chip" style="color:var(--ink-300)">Uncategorized</span>';
@@ -295,25 +353,10 @@ async function renderExpenses() {
   });
 }
 
-async function editExpense(id, expenses) {
+function editExpense(id, expenses) {
   const expense = expenses.find((e) => e.id === id);
   if (!expense) return;
-  populateExpenseFormMemberFields(currentGroup);
-  await populateExpenseCategorySelect(expense.categoryId);
-  document.getElementById('expenseId').value = expense.id;
-  document.getElementById('expenseName').value = expense.name;
-  document.getElementById('expenseAmount').value = expense.amount;
-  document.getElementById('expenseDate').value = expense.date;
-  document.getElementById('expenseTime').value = expense.time;
-  document.getElementById('expenseDescription').value = expense.description || '';
-  document.getElementById('expensePaidBy').value = expense.paidBy;
-  document.getElementById('expenseCategoryNew').hidden = true;
-  document.getElementById('expenseCategoryNew').required = false;
-  document.querySelectorAll('.split-checkbox').forEach((cb) => {
-    cb.checked = expense.splitBetween.includes(cb.value);
-  });
-  document.getElementById('expenseForm').hidden = false;
-  document.getElementById('expenseForm').scrollIntoView({ behavior: 'smooth' });
+  showExpenseModal(expense);
 }
 
 async function deleteExpense(id) {
@@ -322,7 +365,7 @@ async function deleteExpense(id) {
   try {
     await deleteGroupExpenseApi(groupId, id);
     showToast('Expense deleted');
-    await Promise.all([renderExpenses(), renderBalances(), loadGroupHeader()]);
+    await Promise.all([renderExpenses(), loadTotalSpent(), loadGroupHeader()]);
   } catch (err) {
     showToast(err.message || 'Failed to delete expense.');
   }
@@ -358,7 +401,7 @@ async function init() {
 
   try {
     await loadGroupHeader();
-    await Promise.all([renderExpenses(), renderBalances()]);
+    await Promise.all([renderExpenses(), loadTotalSpent()]);
     await initChat();
   } catch (err) {
     showToast(err.message || 'Failed to load group.');

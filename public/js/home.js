@@ -1,6 +1,3 @@
-/* =========================================================
-   HOME PAGE
-   ========================================================= */
 async function populateHomeMonthFilter(allTxs) {
   const sel = document.getElementById('homeMonthFilter');
   const months = Array.from(new Set(allTxs.map(t => monthKey(t.date)))).filter(Boolean).sort().reverse();

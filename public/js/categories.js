@@ -1,6 +1,3 @@
-/* =========================================================
-   CATEGORIES PAGE (CRUD)
-   ========================================================= */
 async function renderCategoriesPage() {
   const [categories, txs] = await Promise.all([getCategories(), getTransactions()]);
   const grid = document.getElementById('categoryManageGrid');

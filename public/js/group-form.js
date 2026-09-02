@@ -1,6 +1,3 @@
-/* =========================================================
-   GROUP FORM PAGE (create — edit uses ?id= and reuses this page)
-   ========================================================= */
 const editId = new URLSearchParams(location.search).get('id');
 const groupForm = document.getElementById('groupForm');
 

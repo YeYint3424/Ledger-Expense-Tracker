@@ -1,6 +1,3 @@
-/* =========================================================
-   CATEGORY FORM PAGE (add / edit — id comes from ?id= in URL)
-   ========================================================= */
 const editId = new URLSearchParams(location.search).get('id');
 let cachedCategories = [];
 
@@ -87,8 +84,6 @@ document.getElementById('categoryForm').addEventListener('submit', async (e) => 
     } else {
       const { category, reused } = await createCategory({ name, color });
       if (reused) {
-        // Someone else (or another tab) created this name a moment ago — don't silently
-        // redirect as if we made a new one; tell the user instead.
         setCategoryNameError(`"${category.name}" already exists — choose a different name.`);
         document.getElementById('categoryName').focus();
         return;

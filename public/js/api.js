@@ -1,7 +1,3 @@
-/* =========================================================
-   API CLIENT (talks to the Express backend under /api)
-   Loaded on every page, before the page-specific script.
-   ========================================================= */
 const API_BASE = '/api';
 
 async function apiFetch(path, options = {}) {
@@ -135,23 +131,51 @@ function showToast(msg) {
   showToast._timer = setTimeout(() => { t.hidden = true; }, 2200);
 }
 
+function formatThousands(digitsAndDot) {
+  const firstDot = digitsAndDot.indexOf('.');
+  const intPart = firstDot === -1 ? digitsAndDot : digitsAndDot.slice(0, firstDot);
+  const decPart = firstDot === -1 ? '' : digitsAndDot.slice(firstDot + 1).replace(/\./g, '').slice(0, 2);
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return firstDot === -1 ? withCommas : `${withCommas}.${decPart}`;
+}
+function wireThousandsInput(input) {
+  if (!input) return;
+  input.addEventListener('input', () => {
+    const cursorFromEnd = input.value.length - input.selectionEnd;
+    const raw = input.value.replace(/[^\d.]/g, '');
+    input.value = raw ? formatThousands(raw) : '';
+    const pos = Math.max(0, input.value.length - cursorFromEnd);
+    input.setSelectionRange(pos, pos);
+  });
+}
+function setAmountInputValue(input, amount) {
+  if (!input) return;
+  input.value = amount || amount === 0 ? formatThousands(String(amount)) : '';
+}
+function parseAmountInput(input) {
+  return parseFloat((input && input.value || '').replace(/,/g, '')) || 0;
+}
+
 const SWATCH_PALETTE = ['#B0462B', '#3E7D53', '#B98B2E', '#5B6B8C', '#8E4E8C', '#2C7A7B', '#7A5C3E', '#4C6B2C', '#8FA096', '#1F2A24'];
 function randomCategoryColor() {
   return SWATCH_PALETTE[Math.floor(Math.random() * SWATCH_PALETTE.length)];
 }
 
-/* ---- export (fetches everything for the current user) ---- */
+/* ---- export ---- */
 function wireExportButton() {
-  document.querySelectorAll('#exportBtn, .js-export-btn').forEach((btn) => {
+  document.querySelectorAll('.js-export-btn').forEach((btn) => {
     btn.addEventListener('click', async () => {
       try {
-        const res = await fetch(`${API_BASE}/export/xlsx`, { credentials: 'include' });
+        const monthSel = document.getElementById('analyticsMonthFilter');
+        const month = monthSel && monthSel.value !== 'all' ? monthSel.value : '';
+        const qs = month ? `?month=${encodeURIComponent(month)}` : '';
+        const res = await fetch(`${API_BASE}/export/xlsx${qs}`, { credentials: 'include' });
         if (!res.ok) throw new Error('Export failed.');
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `ledger-export-${todayISO()}.xlsx`;
+        a.download = `ledger-export-${month || todayISO()}.xlsx`;
         a.click();
         URL.revokeObjectURL(url);
       } catch (e) {
@@ -280,14 +304,24 @@ async function startConversation(friendId) {
 let _socket = null;
 function getSocket() {
   if (!_socket) {
-    _socket = io({ withCredentials: true });
+    _socket = io({
+      withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+    });
+
+    _socket.on('connect_error', (err) => {
+      if (/session id unknown/i.test((err && err.message) || '')) {
+        _socket.disconnect();
+        setTimeout(() => _socket.connect(), 500);
+      }
+    });
   }
   return _socket;
 }
 
-/* ---- global chat notifications (works on every page, not just the open chat) ----
-   Whichever chat a page currently has open should call window.setActiveChatId(id)
-   so we don't pop a notification about a message the person is already looking at. */
 let _activeChatId = null;
 function setActiveChatId(id) { _activeChatId = id; }
 window.setActiveChatId = setActiveChatId;

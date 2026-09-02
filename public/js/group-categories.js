@@ -1,6 +1,3 @@
-/* =========================================================
-   GROUP CATEGORIES PAGE (CRUD, global taxonomy)
-   ========================================================= */
 async function renderGroupCategories() {
   const categories = await getGroupCategories();
   const grid = document.getElementById('groupCategoryGrid');

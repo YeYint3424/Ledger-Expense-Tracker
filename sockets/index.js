@@ -56,6 +56,17 @@ async function areFriends(userA, userB) {
 function initSockets(httpServer) {
   const io = new Server(httpServer, {
     cors: { origin: true, credentials: true },
+    // Tolerate brief network blips (mobile tab backgrounded, wifi hiccup, Vercel cold start)
+    // without the client falling into a broken "Session ID unknown" state: instead of the
+    // engine.io session being torn down the moment a ping is missed, it's kept alive for a
+    // grace window so a client that comes back can resume the same session and its room
+    // membership (group/conversation joins) instead of having to reconnect from scratch.
+    connectionStateRecovery: {
+      maxDisconnectionDuration: 2 * 60 * 1000,
+      skipMiddlewares: false,
+    },
+    pingTimeout: 30000,
+    pingInterval: 25000,
   });
 
   // Auth handshake: read the same httpOnly JWT cookie the REST API uses.

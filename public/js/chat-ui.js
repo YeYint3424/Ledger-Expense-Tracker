@@ -1,18 +1,4 @@
-/* =========================================================
-   SHARED CHAT UI (used by group-detail.js and messages.js)
-   Messenger-style bubbles: sender name in the top-left corner
-   of each incoming bubble, own messages on the right with no
-   name. Hovering a message reveals Reply / Forward for anyone,
-   plus Edit / Delete for your own messages only — pure CSS
-   hover, no click-to-open menu to get stuck open or hidden.
-   ========================================================= */
 const ChatUI = (() => {
-  /**
-   * Normalizes m.senderId into { id, name } regardless of shape — a plain ID
-   * string, the normal { id, name } the API sends, or a raw un-transformed
-   * { _id, name } — so "is this my message" never silently fails just
-   * because of a shape mismatch.
-   */
   function extractSenderInfo(senderIdField) {
     if (senderIdField == null) return { id: null, name: null };
     if (typeof senderIdField === 'string') return { id: senderIdField, name: null };
@@ -24,11 +10,6 @@ const ChatUI = (() => {
     return { id: String(senderIdField), name: null };
   }
 
-  /**
-   * Name priority: the caller's own local lookup (group member list / known
-   * friend) first, since that data is already loaded and known-correct —
-   * then whatever the server sent, then a last-resort placeholder.
-   */
   function resolveName(userId, mine, mFromServer, resolveSenderName) {
     if (mine) return 'You';
     if (typeof resolveSenderName === 'function') {
@@ -78,18 +59,23 @@ const ChatUI = (() => {
       : '';
 
     const editedTag = m.edited ? '<span class="msg-edited-tag">(edited)</span>' : '';
+    const pendingTag = m.pending
+      ? (m.failed
+        ? '<span class="msg-edited-tag msg-send-failed">Failed to send — check your connection</span>'
+        : '<span class="msg-edited-tag">Sending…</span>')
+      : '';
 
     return `
       <div class="msg-row ${mine ? 'mine' : ''}" data-msg-id="${m.id}">
-        ${mine ? actionIconsHTML(mine) : ''}
-        <div class="msg-bubble">
+        ${mine && !m.pending ? actionIconsHTML(mine) : ''}
+        <div class="msg-bubble ${m.pending ? 'msg-bubble-pending' : ''}">
           ${!mine ? `<div class="msg-sender">${escapeHtml(senderName)}</div>` : ''}
           ${forwardedHtml}
           ${replyHtml}
           <div class="msg-text">${escapeHtml(m.text)}</div>
-          <div class="msg-time">${time} ${editedTag}</div>
+          <div class="msg-time">${time} ${editedTag}${pendingTag}</div>
         </div>
-        ${!mine ? actionIconsHTML(mine) : ''}
+        ${!mine && !m.pending ? actionIconsHTML(mine) : ''}
       </div>`;
   }
 
@@ -133,29 +119,47 @@ const ChatUI = (() => {
     ];
     return targets.filter((t) => t.id !== excludeRoom);
   }
-
-  /**
-   * Mounts a full chat panel: fetches history, renders it, wires the send form
-   * (with reply support), and listens for live new/edited/deleted messages.
-   *
-   * `resolveSenderName(userId)` is a fallback the caller supplies (e.g. from a
-   * group's already-known member list, or a conversation's known friend) —
-   * this is checked BEFORE the server-provided name, since it's already-loaded
-   * data the caller knows is correct.
-   */
+  
   function mount({ containerEl, formEl, inputEl, currentUserId, room, scope, fetchHistory, resolveSenderName }) {
     let replyingTo = null;
     let lastMessages = [];
+    let pendingMessages = [];
 
-    async function refresh() {
-      lastMessages = await fetchHistory();
-      if (!lastMessages.length) {
+    /** Drops any pending echo once the real (persisted) message shows up in lastMessages. */
+    function reconcilePending() {
+      if (!pendingMessages.length) return;
+      pendingMessages = pendingMessages.filter((p) => !lastMessages.some((m) => {
+        const { id: senderId } = extractSenderInfo(m.senderId);
+        return String(senderId) === String(currentUserId) &&
+          m.text === p.text &&
+          Math.abs(new Date(m.createdAt).getTime() - p.createdAt) < 30000;
+      }));
+    }
+
+    function renderAll() {
+      const pendingAsMessages = pendingMessages.map((p) => ({
+        id: p.tempId,
+        senderId: currentUserId,
+        text: p.text,
+        createdAt: new Date(p.createdAt).toISOString(),
+        replyTo: p.replyTo,
+        pending: true,
+        failed: p.failed,
+      }));
+      const combined = [...lastMessages, ...pendingAsMessages];
+      if (!combined.length) {
         containerEl.innerHTML = '<p class="chat-empty">No messages yet — say hi 👋</p>';
       } else {
-        containerEl.innerHTML = lastMessages.map((m) => bubbleHTML(m, currentUserId, resolveSenderName)).join('');
+        containerEl.innerHTML = combined.map((m) => bubbleHTML(m, currentUserId, resolveSenderName)).join('');
         containerEl.scrollTop = containerEl.scrollHeight;
       }
       wireBubbleActions();
+    }
+
+    async function refresh() {
+      lastMessages = await fetchHistory();
+      reconcilePending();
+      renderAll();
     }
 
     function wireBubbleActions() {
@@ -239,6 +243,25 @@ const ChatUI = (() => {
       if (!text) return;
       const payload = scope === 'group' ? { groupId: room, text } : { conversationId: room, text };
       if (replyingTo) payload.replyTo = replyingTo.id;
+
+      const tempId = `pending-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      pendingMessages.push({
+        tempId,
+        text,
+        createdAt: Date.now(),
+        replyTo: replyingTo ? { senderName: 'You', text: replyingTo.text } : null,
+        failed: false,
+      });
+      renderAll();
+
+      setTimeout(() => {
+        const stillPending = pendingMessages.find((p) => p.tempId === tempId);
+        if (stillPending) {
+          stillPending.failed = true;
+          renderAll();
+        }
+      }, 15000);
+
       getSocket().emit(scope === 'group' ? 'group-message' : 'direct-message', payload);
       inputEl.value = '';
       clearReply();

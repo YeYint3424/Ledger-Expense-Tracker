@@ -1,6 +1,3 @@
-/* =========================================================
-   GROUPS LIST PAGE
-   ========================================================= */
 async function renderGroups() {
   const [groups, categories] = await Promise.all([getGroups(), getGroupCategories()]);
   const grid = document.getElementById('groupGrid');

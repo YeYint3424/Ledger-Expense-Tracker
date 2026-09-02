@@ -1,6 +1,3 @@
-/* =========================================================
-   ANALYTICS PAGE (Chart.js, data from /api/analytics/summary)
-   ========================================================= */
 let pieChart, trendLineChart, topCategoriesChart, balanceLineChart;
 
 const CHART_FONT = { family: 'Inter', size: 12 };

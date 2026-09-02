@@ -6,11 +6,17 @@ const { requireAuth } = require('../middleware/auth');
 
 router.use(requireAuth);
 
-// GET /api/export/xlsx — the user's transactions + categories as a real .xlsx workbook
+// GET /api/export/xlsx?month=YYYY-MM — the user's transactions + categories as a real .xlsx
+// workbook. `month` is optional; when present it scopes the Transactions sheet to that month
+// only, matching whatever the Analytics page's month filter is currently showing.
 router.get('/xlsx', async (req, res) => {
   try {
+    const monthFilter = /^\d{4}-\d{2}$/.test(req.query.month || '') ? req.query.month : null;
+    const txQuery = { userId: req.userId };
+    if (monthFilter) txQuery.date = { $gte: `${monthFilter}-01`, $lt: `${monthFilter}-32` };
+
     const [transactions, categories] = await Promise.all([
-      Transaction.find({ userId: req.userId }).sort({ date: -1, time: -1 }),
+      Transaction.find(txQuery).sort({ date: -1, time: -1 }),
       Category.find({ userId: req.userId }).sort({ name: 1 }),
     ]);
     const catMap = Object.fromEntries(categories.map((c) => [c._id.toString(), c.name]));
@@ -56,7 +62,7 @@ router.get('/xlsx', async (req, res) => {
     catSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF3EC' } };
     categories.forEach((c) => catSheet.addRow({ name: c.name, color: c.color }));
 
-    const filename = `ledger-export-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    const filename = `ledger-export-${monthFilter || new Date().toISOString().slice(0, 10)}.xlsx`;
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     await workbook.xlsx.write(res);

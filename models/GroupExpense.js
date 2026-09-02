@@ -27,12 +27,20 @@ groupExpenseSchema.set('toJSON', {
     ret.groupId = ret.groupId.toString();
     ret.paidBy = ret.paidBy.toString();
     ret.createdBy = ret.createdBy.toString();
-    // categoryId may be populated ({_id,name,color}) or a plain ObjectId, depending on the query.
-    if (ret.categoryId && ret.categoryId._id) {
-      ret.categoryId = { id: ret.categoryId._id.toString(), name: ret.categoryId.name, color: ret.categoryId.color };
+    // categoryId may be populated (a Category doc/subobject) or a plain ObjectId, depending
+    // on the query — either way it's exposed to clients as `category`, not the raw id field.
+    // `name` is only ever present once populated (a bare ObjectId never has it), and is a
+    // more reliable signal than checking for `_id`/`id` — Category's own toJSON transform
+    // already renamed `_id` to `id` by the time this runs, so `_id` alone can't be trusted.
+    if (ret.categoryId && ret.categoryId.name !== undefined) {
+      const catId = ret.categoryId.id || (ret.categoryId._id && ret.categoryId._id.toString());
+      ret.category = { id: catId, name: ret.categoryId.name, color: ret.categoryId.color };
     } else if (ret.categoryId) {
-      ret.categoryId = ret.categoryId.toString();
+      ret.category = { id: ret.categoryId.toString(), name: null, color: null };
+    } else {
+      ret.category = null;
     }
+    delete ret.categoryId;
     ret.splitBetween = (ret.splitBetween || []).map((id) => id.toString());
     delete ret._id;
     delete ret.__v;

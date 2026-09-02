@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile — Ledger</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="mobile-topbar">
+      <span class="mobile-topbar-title">Expense Tracker</span>
+      <div class="mobile-topbar-actions">
+        <a
+          href="messages.html"
+          class="mobile-topbar-action"
+          title="Messages"
+          aria-label="Messages"
+          ><svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4 4h16v16H4z" opacity="0" />
+            <path
+              d="M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5v13A1.5 1.5 0 0 1 19.5 20h-15A1.5 1.5 0 0 1 3 18.5v-13z"
+            />
+            <path d="m3.5 5 8.5 7 8.5-7" /></svg
+        ></a>
+        <a
+          href="friends.html"
+          class="mobile-topbar-action"
+          title="Friends"
+          aria-label="Friends"
+          ><svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg
+        ></a>
+        <a
+          href="groups.html"
+          class="mobile-topbar-action"
+          title="Groups"
+          aria-label="Groups"
+          ><svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="6" r="3" />
+            <circle cx="5" cy="10" r="2.4" />
+            <circle cx="19" cy="10" r="2.4" />
+            <path d="M6 20c0-3 2.5-5 6-5s6 2 6 5" />
+            <path d="M2 20c0-2 1-3.5 3-4" />
+            <path d="M22 20c0-2-1-3.5-3-4" /></svg
+        ></a>
+      </div>
+    </header>
+
+    <div class="app-shell">
+      <nav class="spine">
+        <div class="spine-brand">
+          <span class="spine-brand-mark">L</span>
+          <span class="spine-brand-text">Ledger</span>
+        </div>
+        <ul class="spine-nav">
+          <li>
+            <a href="index.html" class="spine-link"
+              ><span class="spine-icon">⌂</span><span>Home</span></a
+            >
+          </li>
+          <li>
+            <a href="transactions.html" class="spine-link"
+              ><span class="spine-icon">≡</span><span>Transactions</span></a
+            >
+          </li>
+          <li>
+            <a href="analytics.html" class="spine-link"
+              ><span class="spine-icon">◔</span><span>Analytics</span></a
+            >
+          </li>
+          <li>
+            <a href="categories.html" class="spine-link"
+              ><span class="spine-icon">▤</span><span>Categories</span></a
+            >
+          </li>
+          <li>
+            <a href="groups.html" class="spine-link"
+              ><span class="spine-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="3"/><circle cx="5" cy="10" r="2.4"/><circle cx="19" cy="10" r="2.4"/><path d="M6 20c0-3 2.5-5 6-5s6 2 6 5"/><path d="M2 20c0-2 1-3.5 3-4"/><path d="M22 20c0-2-1-3.5-3-4"/></svg></span><span>Groups</span></a
+            >
+          </li>
+          <li>
+            <a href="friends.html" class="spine-link"
+              ><span class="spine-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Friends</span></a
+            >
+          </li>
+          <li>
+            <a href="messages.html" class="spine-link"
+              ><span class="spine-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z" opacity="0"/><path d="M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5v13A1.5 1.5 0 0 1 19.5 20h-15A1.5 1.5 0 0 1 3 18.5v-13z"/><path d="m3.5 5 8.5 7 8.5-7"/></svg></span><span>Messages</span></a
+            >
+          </li>
+          <li>
+            <a href="profile.html" class="spine-link active"
+              ><span class="spine-icon"
+                ><svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" /></svg></span
+              ><span>Profile</span></a
+            >
+          </li>
+        </ul>
+        <div class="spine-footer">
+          <div class="spine-user">
+            <p class="spine-user-label">Signed in as</p>
+            <p class="spine-user-name" id="currentUserName">…</p>
+          </div>
+          <button
+            class="btn btn-ghost btn-block"
+            id="exportBtn"
+            title="Export all data as an Excel file"
+          >
+            Export data (.xlsx)
+          </button>
+          <button
+            class="btn btn-ghost btn-block"
+            id="logoutBtn"
+            style="margin-top: 8px"
+          >
+            Log out
+          </button>
+        </div>
+      </nav>
+
+      <main class="content">
+        <section class="page">
+          <header class="page-head">
+            <div>
+              <p class="eyebrow">Account</p>
+              <h1 class="page-title">Profile</h1>
+            </div>
+          </header>
+
+          <form id="profileForm" class="form-card" style="margin-bottom: 24px">
+            <h3 class="card-title" style="margin-bottom: 16px">Your details</h3>
+            <div class="field">
+              <label for="profileName">Name<span class="req">*</span></label>
+              <input type="text" id="profileName" class="input" required />
+            </div>
+            <div class="field">
+              <label for="profileEmail">Email<span class="req">*</span></label>
+              <input type="email" id="profileEmail" class="input" required />
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                Save changes
+              </button>
+            </div>
+          </form>
+
+          <form id="passwordForm" class="form-card">
+            <h3 class="card-title" style="margin-bottom: 16px">
+              Change password
+            </h3>
+            <p class="empty-note" style="text-align: left; padding: 0 0 16px 0">
+              Leave these blank if you don't want to change your password.
+            </p>
+            <div class="field">
+              <label for="currentPassword">Current password</label>
+              <input
+                type="password"
+                id="currentPassword"
+                class="input"
+                autocomplete="current-password"
+              />
+            </div>
+            <div class="field">
+              <label for="newPassword">New password</label>
+              <input
+                type="password"
+                id="newPassword"
+                class="input"
+                minlength="6"
+                autocomplete="new-password"
+                placeholder="At least 6 characters"
+              />
+            </div>
+            <div class="field">
+              <label for="confirmNewPassword">Confirm new password</label>
+              <input
+                type="password"
+                id="confirmNewPassword"
+                class="input"
+                minlength="6"
+                autocomplete="new-password"
+              />
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                Update password
+              </button>
+            </div>
+          </form>
+
+          <div class="mobile-account-actions">
+            <button type="button" class="btn btn-ghost btn-block js-logout-btn">
+              Log out
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+        <nav class="tab-bar">
+      <div class="tab-bar-inner">
+        <a href="index.html" class="tab-link"><span>&#8962;</span>Home</a>
+        <a href="transactions.html" class="tab-link"><span>&#8801;</span>Txns</a>
+        <a href="analytics.html" class="tab-link"><span>&#9684;</span>Stats</a>
+        <a href="categories.html" class="tab-link"><span>&#9636;</span>Cats</a>
+        <a href="profile.html" class="tab-link active"
+          ><span
+            ><svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" /></svg></span
+          >Profile</a
+        >
+      </div>
+    </nav>
+
+    <div class="toast" id="toast" hidden></div>
+
+    <script src="js/api.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/profile.js"></script>
+  </body>
+</html>

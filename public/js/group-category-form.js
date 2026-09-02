@@ -1,6 +1,3 @@
-/* =========================================================
-   GROUP CATEGORY FORM PAGE (add / edit — id from ?id= in URL)
-   ========================================================= */
 const editId = new URLSearchParams(location.search).get('id');
 let cachedCategories = [];
 

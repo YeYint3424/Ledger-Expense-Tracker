@@ -1,7 +1,3 @@
-/* =========================================================
-   LOGIN / REGISTER PAGE LOGIC
-   ========================================================= */
-
 async function handleLogin(e) {
   e.preventDefault();
   const email = document.getElementById('loginEmail').value.trim();

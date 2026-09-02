@@ -1,6 +1,3 @@
-/* =========================================================
-   FRIENDS PAGE
-   ========================================================= */
 async function renderFriends() {
   const friends = await getFriends();
   const list = document.getElementById('friendList');

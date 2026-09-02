@@ -149,13 +149,6 @@
           </div>
           <button
             class="btn btn-ghost btn-block"
-            id="exportBtn"
-            title="Export as an Excel file"
-          >
-            Export to Excel
-          </button>
-          <button
-            class="btn btn-ghost btn-block"
             id="logoutBtn"
             style="margin-top: 8px"
           >
@@ -172,17 +165,17 @@
               <h1 class="page-title">Analytics</h1>
             </div>
             <div class="page-actions">
-              <button
-                type="button"
-                class="btn btn-ghost js-export-btn"
-                title="Export all data as an Excel file"
-              >
-                Export data (.xlsx)
-              </button>
               <select
                 id="analyticsMonthFilter"
                 class="select select-sm"
               ></select>
+              <button
+                type="button"
+                class="btn btn-ghost js-export-btn"
+                title="Export the selected month (or all data) as an Excel file"
+              >
+                Export data (.xlsx)
+              </button>
             </div>
           </header>
 

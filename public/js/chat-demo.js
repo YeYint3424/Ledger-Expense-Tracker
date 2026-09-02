@@ -1,12 +1,3 @@
-/* =========================================================
-   CHAT DEMO — fully mocked, in-browser "backend"
-   No login, no fetch, no Socket.IO connection. This exercises
-   the real public/js/chat-ui.js module against fake data so the
-   chat UI (bubbles, hover actions, edit/delete/forward/reply,
-   soft-delete) can be seen and tested without a live database.
-   ========================================================= */
-
-/* ---- tiny stand-ins for what api.js normally provides ---- */
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str ?? '';

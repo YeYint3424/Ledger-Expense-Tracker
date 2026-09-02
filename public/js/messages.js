@@ -1,6 +1,3 @@
-/* =========================================================
-   MESSAGES PAGE (direct messages between confirmed friends)
-   ========================================================= */
 let currentUserId = null;
 let activeConversationId = null;
 let conversationsCache = [];
@@ -67,16 +64,12 @@ async function init() {
   if (!user) return;
   currentUserId = user.id;
 
-  // Keep the sidebar's ordering/preview fresh whenever any conversation gets a new message.
   getSocket().on('direct-message', () => loadConversations());
   getSocket().on('message-edited', () => loadConversations());
   getSocket().on('message-deleted', () => loadConversations());
 
   try {
     await loadConversations();
-
-    // Deep link from a notification card: messages.html?conversation=<id>
-    // or from the Friends page: messages.html?friend=<userId>
     const conversationParam = new URLSearchParams(location.search).get('conversation');
     const friendId = new URLSearchParams(location.search).get('friend');
     if (conversationParam) {

@@ -1,8 +1,6 @@
-/* =========================================================
-   INCOME FORM PAGE (add / edit — id comes from ?id= in URL)
-   ========================================================= */
 const incomeForm = document.getElementById('incomeForm');
 const editId = new URLSearchParams(location.search).get('id');
+wireThousandsInput(document.getElementById('incomeAmount'));
 
 async function loadIncomeForm() {
   let tx = null;
@@ -18,7 +16,7 @@ async function loadIncomeForm() {
   document.title = (tx ? 'Edit income' : 'Add income') + ' — Ledger';
   document.getElementById('incomeId').value = tx ? tx.id : '';
   document.getElementById('incomeName').value = tx ? tx.name : '';
-  document.getElementById('incomeAmount').value = tx ? tx.amount : '';
+  setAmountInputValue(document.getElementById('incomeAmount'), tx ? tx.amount : '');
   document.getElementById('incomeDate').value = tx ? tx.date : todayISO();
   document.getElementById('incomeTime').value = tx ? tx.time : nowTime();
   document.getElementById('incomeDescription').value = tx ? (tx.description || '') : '';
@@ -30,7 +28,7 @@ incomeForm.addEventListener('submit', async (e) => {
   const payload = {
     type: 'income',
     name: document.getElementById('incomeName').value.trim(),
-    amount: parseFloat(document.getElementById('incomeAmount').value) || 0,
+    amount: parseAmountInput(document.getElementById('incomeAmount')),
     date: document.getElementById('incomeDate').value,
     time: document.getElementById('incomeTime').value,
     description: document.getElementById('incomeDescription').value.trim(),

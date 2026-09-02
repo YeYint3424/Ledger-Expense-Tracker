@@ -149,13 +149,6 @@
           </div>
           <button
             class="btn btn-ghost btn-block"
-            id="exportBtn"
-            title="Export as an Excel file"
-          >
-            Export to Excel
-          </button>
-          <button
-            class="btn btn-ghost btn-block"
             id="logoutBtn"
             style="margin-top: 8px"
           >
@@ -195,12 +188,11 @@
                 >Amount<span class="req">*</span></label
               >
               <input
-                type="number"
+                type="text"
+                inputmode="decimal"
                 id="outcomeAmount"
                 class="input"
                 required
-                min="0"
-                step="0.01"
                 placeholder="0.00"
               />
             </div>

@@ -1,8 +1,5 @@
 const mongoose = require('mongoose');
 
-// Group categories (Travel, Relationship, Roommates, ...) are shared across all
-// users, unlike personal expense categories which are scoped per user — a group
-// itself is already a shared object, so its "type" label works the same way.
 const groupCategorySchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, unique: true },

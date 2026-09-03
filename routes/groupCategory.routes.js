@@ -9,13 +9,11 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// GET /api/group-categories
 router.get('/', async (req, res) => {
   const categories = await GroupCategory.find().sort({ name: 1 });
   res.json({ categories });
 });
 
-// POST /api/group-categories — reuses an existing name instead of duplicating
 router.post('/', async (req, res) => {
   try {
     const name = (req.body.name || '').trim();
@@ -33,7 +31,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/group-categories/:id
 router.put('/:id', async (req, res) => {
   try {
     const name = (req.body.name || '').trim();
@@ -55,7 +52,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/group-categories/:id — groups using it fall back to "no category"
 router.delete('/:id', async (req, res) => {
   const category = await GroupCategory.findByIdAndDelete(req.params.id);
   if (!category) return res.status(404).json({ error: 'Category not found.' });

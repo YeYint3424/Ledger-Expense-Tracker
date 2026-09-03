@@ -9,15 +9,11 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// GET /api/categories
 router.get('/', async (req, res) => {
   const categories = await Category.find({ userId: req.userId }).sort({ name: 1 });
   res.json({ categories });
 });
 
-// POST /api/categories
-// If a category with the same name (case-insensitive) already exists for this user,
-// the existing one is returned instead of creating a duplicate (reused: true).
 router.post('/', async (req, res) => {
   try {
     const name = (req.body.name || '').trim();
@@ -40,7 +36,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/categories/:id
 router.put('/:id', async (req, res) => {
   try {
     const name = (req.body.name || '').trim();
@@ -67,7 +62,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/categories/:id  — reassigns affected transactions to "Uncategorized"
 router.delete('/:id', async (req, res) => {
   const category = await Category.findOneAndDelete({ _id: req.params.id, userId: req.userId });
   if (!category) return res.status(404).json({ error: 'Category not found.' });

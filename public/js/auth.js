@@ -44,7 +44,6 @@ if (loginForm) loginForm.addEventListener('submit', handleLogin);
 const registerForm = document.getElementById('registerForm');
 if (registerForm) registerForm.addEventListener('submit', handleRegister);
 
-/* If already signed in, skip straight past the auth page */
 (async () => {
   const user = await fetchCurrentUser();
   if (user) location.href = 'index.html';

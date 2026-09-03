@@ -4,8 +4,6 @@ let currentGroup = null;
 
 if (!groupId) location.href = 'groups.html';
 
-/* ---- header / members ---- */
-
 async function loadGroupHeader() {
   const [group, categories] = await Promise.all([getGroup(groupId), getGroupCategories()]);
   currentGroup = group;
@@ -128,8 +126,6 @@ async function loadTotalSpent() {
     showToast(err.message || 'Failed to load total spent.');
   }
 }
-
-/* ---- expenses (categories come from the personal categories table) ---- */
 
 function populateExpenseFormMemberFields(group) {
   const paidBySel = document.getElementById('expensePaidBy');
@@ -324,7 +320,7 @@ async function renderExpenses() {
   empty.hidden = true;
 
   tbody.innerHTML = expenses.map((e) => {
-    const cat = e.category; // populated by the server: {id, name, color}
+    const cat = e.category;
     const catChip = cat
       ? `<span class="cat-chip"><span class="cat-dot" style="background:${cat.color}"></span>${escapeHtml(cat.name)}</span>`
       : '<span class="cat-chip" style="color:var(--ink-300)">Uncategorized</span>';
@@ -371,8 +367,6 @@ async function deleteExpense(id) {
   }
 }
 
-/* ---- group chat (Socket.IO, via shared ChatUI) ---- */
-
 async function initChat() {
   if (window.setActiveChatId) window.setActiveChatId(groupId);
   getSocket().emit('join-group', groupId);
@@ -391,8 +385,6 @@ async function initChat() {
     },
   });
 }
-
-/* ---- init ---- */
 
 async function init() {
   const user = await requireAuthOrRedirect();

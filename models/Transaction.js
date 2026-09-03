@@ -6,8 +6,8 @@ const transactionSchema = new mongoose.Schema(
     type: { type: String, enum: ['income', 'outcome'], required: true },
     name: { type: String, required: true, trim: true },
     amount: { type: Number, required: true, min: 0 },
-    date: { type: String, required: true }, // 'YYYY-MM-DD'
-    time: { type: String, required: true }, // 'HH:MM'
+    date: { type: String, required: true },
+    time: { type: String, required: true },
     description: { type: String, default: '', trim: true },
     categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
   },

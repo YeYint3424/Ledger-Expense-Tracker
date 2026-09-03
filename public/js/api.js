@@ -7,7 +7,7 @@ async function apiFetch(path, options = {}) {
     ...options,
   });
   let data = null;
-  try { data = await res.json(); } catch (e) { /* empty body, fine */ }
+  try { data = await res.json(); } catch (e) {}
   if (!res.ok) {
     const message = (data && data.error) || 'Something went wrong.';
     const err = new Error(message);
@@ -17,7 +17,6 @@ async function apiFetch(path, options = {}) {
   return data;
 }
 
-/* ---- auth ---- */
 async function fetchCurrentUser() {
   try {
     const data = await apiFetch('/auth/me');
@@ -27,7 +26,6 @@ async function fetchCurrentUser() {
   }
 }
 
-/** Call at the top of every protected page's init(). Redirects to login.html if not signed in. */
 async function requireAuthOrRedirect() {
   const user = await fetchCurrentUser();
   if (!user) {
@@ -42,7 +40,7 @@ async function requireAuthOrRedirect() {
 }
 
 async function logout() {
-  try { await apiFetch('/auth/logout', { method: 'POST' }); } catch (e) { /* ignore */ }
+  try { await apiFetch('/auth/logout', { method: 'POST' }); } catch (e) {}
   location.href = 'login.html';
 }
 
@@ -51,12 +49,10 @@ async function updateProfile(payload) {
   return data.user;
 }
 
-/* ---- categories ---- */
 async function getCategories() {
   const data = await apiFetch('/categories');
   return data.categories;
 }
-/** Returns { category, reused }. If a category with the same name already existed, reused=true and the existing one is returned instead of a duplicate. */
 async function createCategory(payload) {
   return apiFetch('/categories', { method: 'POST', body: JSON.stringify(payload) });
 }
@@ -68,7 +64,6 @@ async function deleteCategoryApi(id) {
   return apiFetch(`/categories/${id}`, { method: 'DELETE' });
 }
 
-/* ---- transactions ---- */
 async function getTransactions(filters = {}) {
   const params = new URLSearchParams();
   Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
@@ -78,7 +73,7 @@ async function getTransactions(filters = {}) {
 }
 async function getTransactionMonths() {
   const data = await apiFetch('/transactions/months');
-  return data.months; // ['2026-03', '2026-02', ...] newest first
+  return data.months;
 }
 async function getTransaction(id) {
   const data = await apiFetch(`/transactions/${id}`);
@@ -96,7 +91,6 @@ async function deleteTransactionApi(id) {
   return apiFetch(`/transactions/${id}`, { method: 'DELETE' });
 }
 
-/* ---- formatting helpers ---- */
 function formatMoney(n) {
   const num = Number(n) || 0;
   return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -161,7 +155,6 @@ function randomCategoryColor() {
   return SWATCH_PALETTE[Math.floor(Math.random() * SWATCH_PALETTE.length)];
 }
 
-/* ---- export ---- */
 function wireExportButton() {
   document.querySelectorAll('.js-export-btn').forEach((btn) => {
     btn.addEventListener('click', async () => {
@@ -191,7 +184,6 @@ function wireLogoutButton() {
   });
 }
 
-/* ---- analytics ---- */
 async function getAnalyticsSummary(months = 6, month = null) {
   const params = new URLSearchParams({ months });
   if (month) params.set('month', month);
@@ -199,13 +191,12 @@ async function getAnalyticsSummary(months = 6, month = null) {
   return data;
 }
 
-/* ---- group categories ---- */
 async function getGroupCategories() {
   const data = await apiFetch('/group-categories');
   return data.categories;
 }
 async function createGroupCategory(payload) {
-  return apiFetch('/group-categories', { method: 'POST', body: JSON.stringify(payload) }); // { category, reused }
+  return apiFetch('/group-categories', { method: 'POST', body: JSON.stringify(payload) });
 }
 async function updateGroupCategory(id, payload) {
   const data = await apiFetch(`/group-categories/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
@@ -215,7 +206,6 @@ async function deleteGroupCategoryApi(id) {
   return apiFetch(`/group-categories/${id}`, { method: 'DELETE' });
 }
 
-/* ---- groups ---- */
 async function getGroups() {
   const data = await apiFetch('/groups');
   return data.groups;
@@ -258,20 +248,19 @@ async function deleteGroupExpenseApi(groupId, expenseId) {
   return apiFetch(`/groups/${groupId}/expenses/${expenseId}`, { method: 'DELETE' });
 }
 async function getGroupBalances(groupId) {
-  return apiFetch(`/groups/${groupId}/balances`); // { balances, totalSpent }
+  return apiFetch(`/groups/${groupId}/balances`);
 }
 async function getGroupMessages(groupId, limit = 50) {
   const data = await apiFetch(`/groups/${groupId}/messages?limit=${limit}`);
   return data.messages;
 }
 
-/* ---- friends ---- */
 async function getFriends() {
   const data = await apiFetch('/friends');
   return data.friends;
 }
 async function getFriendRequests() {
-  return apiFetch('/friends/requests'); // { incoming, outgoing }
+  return apiFetch('/friends/requests');
 }
 async function sendFriendRequest(email) {
   return apiFetch('/friends/requests', { method: 'POST', body: JSON.stringify({ email }) });
@@ -286,7 +275,6 @@ async function unfriend(userId) {
   return apiFetch(`/friends/${userId}`, { method: 'DELETE' });
 }
 
-/* ---- conversations (direct messages) ---- */
 async function getConversations() {
   const data = await apiFetch('/conversations');
   return data.conversations;
@@ -300,7 +288,6 @@ async function startConversation(friendId) {
   return data.conversationId;
 }
 
-/* ---- shared socket.io connection (used by group-detail.js and messages.js) ---- */
 let _socket = null;
 function getSocket() {
   if (!_socket) {
@@ -344,7 +331,6 @@ function getNotificationContainer() {
   return el;
 }
 
-/** Shows a small floating, dismissible notification card (never window.alert). */
 function showNotificationCard({ title, body, href }) {
   const container = getNotificationContainer();
   const card = document.createElement('div');
@@ -365,7 +351,7 @@ function showNotificationCard({ title, body, href }) {
   setTimeout(() => card.remove(), 8000);
 
   if ('Notification' in window && Notification.permission === 'granted' && document.visibilityState !== 'visible') {
-    try { new Notification(title, { body }); } catch (e) { /* ignore */ }
+    try { new Notification(title, { body }); } catch (e) {}
   }
 }
 
@@ -399,7 +385,7 @@ function notifyDirectMessage(message) {
 
 let _notificationsInitialized = false;
 function initGlobalNotifications() {
-  if (_notificationsInitialized || typeof io === 'undefined') return; // socket.io client not loaded on this page
+  if (_notificationsInitialized || typeof io === 'undefined') return;
   _notificationsInitialized = true;
   ensureNotificationPermission();
 
@@ -420,9 +406,6 @@ function initGlobalNotifications() {
   });
 }
 
-/* ---- confirm modal (replaces window.confirm everywhere) ----
-   Usage: if (!(await confirmModal('Delete this?'))) return;
-   Or with options: await confirmModal({ title, message, confirmLabel, cancelLabel, danger }) */
 function confirmModal(options) {
   const opts = typeof options === 'string' ? { message: options } : (options || {});
   const {

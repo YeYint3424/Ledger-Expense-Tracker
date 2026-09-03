@@ -6,9 +6,6 @@ const { requireAuth } = require('../middleware/auth');
 
 router.use(requireAuth);
 
-// GET /api/export/xlsx?month=YYYY-MM — the user's transactions + categories as a real .xlsx
-// workbook. `month` is optional; when present it scopes the Transactions sheet to that month
-// only, matching whatever the Analytics page's month filter is currently showing.
 router.get('/xlsx', async (req, res) => {
   try {
     const monthFilter = /^\d{4}-\d{2}$/.test(req.query.month || '') ? req.query.month : null;

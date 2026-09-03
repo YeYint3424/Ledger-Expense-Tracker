@@ -33,16 +33,12 @@ async function toGroupJSON(group) {
   return json;
 }
 
-/* ---- groups ---- */
-
-// GET /api/groups — groups the current user belongs to
 router.get('/', async (req, res) => {
   const groups = await Group.find({ 'members.userId': req.userId }).sort({ updatedAt: -1 });
   const withMembers = await Promise.all(groups.map(toGroupJSON));
   res.json({ groups: withMembers });
 });
 
-// POST /api/groups
 router.post('/', async (req, res) => {
   try {
     const name = (req.body.name || '').trim();
@@ -62,14 +58,12 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/groups/:id
 router.get('/:id', async (req, res) => {
   const group = await Group.findById(req.params.id);
   if (!group || !isMember(group, req.userId)) return res.status(404).json({ error: 'Group not found.' });
   res.json({ group: await toGroupJSON(group) });
 });
 
-// PUT /api/groups/:id — admin only
 router.put('/:id', async (req, res) => {
   const group = await Group.findById(req.params.id);
   if (!group || !isMember(group, req.userId)) return res.status(404).json({ error: 'Group not found.' });
@@ -84,7 +78,6 @@ router.put('/:id', async (req, res) => {
   res.json({ group: await toGroupJSON(group) });
 });
 
-// DELETE /api/groups/:id — admin only
 router.delete('/:id', async (req, res) => {
   const group = await Group.findById(req.params.id);
   if (!group || !isMember(group, req.userId)) return res.status(404).json({ error: 'Group not found.' });
@@ -96,9 +89,6 @@ router.delete('/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
-/* ---- members — any existing member can add another ---- */
-
-// POST /api/groups/:id/members  { email }
 router.post('/:id/members', async (req, res) => {
   const group = await Group.findById(req.params.id);
   if (!group || !isMember(group, req.userId)) return res.status(404).json({ error: 'Group not found.' });
@@ -115,7 +105,6 @@ router.post('/:id/members', async (req, res) => {
   res.status(201).json({ group: await toGroupJSON(group) });
 });
 
-// DELETE /api/groups/:id/members/:userId — self-leave, or an admin removes someone else
 router.delete('/:id/members/:userId', async (req, res) => {
   const group = await Group.findById(req.params.id);
   if (!group || !isMember(group, req.userId)) return res.status(404).json({ error: 'Group not found.' });
@@ -141,9 +130,6 @@ router.delete('/:id/members/:userId', async (req, res) => {
   res.json({ group: await toGroupJSON(group) });
 });
 
-/* ---- expenses — any member can add ---- */
-
-// GET /api/groups/:id/expenses
 router.get('/:id/expenses', async (req, res) => {
   const group = await Group.findById(req.params.id);
   if (!group || !isMember(group, req.userId)) return res.status(404).json({ error: 'Group not found.' });
@@ -153,7 +139,6 @@ router.get('/:id/expenses', async (req, res) => {
   res.json({ expenses });
 });
 
-// POST /api/groups/:id/expenses
 router.post('/:id/expenses', async (req, res) => {
   const group = await Group.findById(req.params.id);
   if (!group || !isMember(group, req.userId)) return res.status(404).json({ error: 'Group not found.' });
@@ -165,8 +150,6 @@ router.post('/:id/expenses', async (req, res) => {
     if (!amount || Number(amount) <= 0) return res.status(400).json({ error: 'Amount must be greater than 0.' });
     if (!categoryId) return res.status(400).json({ error: 'Category is required.' });
 
-    // Categories come from the same personal "categories" table used elsewhere —
-    // whoever is adding the expense picks from their own category list.
     const category = await Category.findOne({ _id: categoryId, userId: req.userId });
     if (!category) return res.status(400).json({ error: 'Choose a category from your own category list.' });
 
@@ -197,7 +180,6 @@ router.post('/:id/expenses', async (req, res) => {
   }
 });
 
-// PUT /api/groups/:id/expenses/:expenseId
 router.put('/:id/expenses/:expenseId', async (req, res) => {
   const group = await Group.findById(req.params.id);
   if (!group || !isMember(group, req.userId)) return res.status(404).json({ error: 'Group not found.' });
@@ -232,7 +214,6 @@ router.put('/:id/expenses/:expenseId', async (req, res) => {
   res.json({ expense });
 });
 
-// DELETE /api/groups/:id/expenses/:expenseId
 router.delete('/:id/expenses/:expenseId', async (req, res) => {
   const group = await Group.findById(req.params.id);
   if (!group || !isMember(group, req.userId)) return res.status(404).json({ error: 'Group not found.' });
@@ -241,7 +222,6 @@ router.delete('/:id/expenses/:expenseId', async (req, res) => {
   res.json({ ok: true });
 });
 
-// GET /api/groups/:id/balances — net balance per member (equal split across each expense's participants)
 router.get('/:id/balances', async (req, res) => {
   const group = await Group.findById(req.params.id);
   if (!group || !isMember(group, req.userId)) return res.status(404).json({ error: 'Group not found.' });
@@ -274,9 +254,6 @@ router.get('/:id/balances', async (req, res) => {
   res.json({ balances, totalSpent });
 });
 
-/* ---- group chat history (sending new messages happens over the websocket) ---- */
-
-// GET /api/groups/:id/messages?limit=50
 router.get('/:id/messages', async (req, res) => {
   const group = await Group.findById(req.params.id);
   if (!group || !isMember(group, req.userId)) return res.status(404).json({ error: 'Group not found.' });

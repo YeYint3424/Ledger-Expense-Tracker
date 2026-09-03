@@ -13,7 +13,7 @@ function setAuthCookie(res, token) {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 }
 
@@ -80,7 +80,6 @@ router.get('/me', requireAuth, async (req, res) => {
   res.json({ user });
 });
 
-// PUT /api/auth/me — edit profile: name, email, and optionally change password
 router.put('/me', requireAuth, async (req, res) => {
   try {
     const user = await User.findById(req.userId);

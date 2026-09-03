@@ -125,7 +125,6 @@ const ChatUI = (() => {
     let lastMessages = [];
     let pendingMessages = [];
 
-    /** Drops any pending echo once the real (persisted) message shows up in lastMessages. */
     function reconcilePending() {
       if (!pendingMessages.length) return;
       pendingMessages = pendingMessages.filter((p) => !lastMessages.some((m) => {

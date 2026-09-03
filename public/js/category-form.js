@@ -35,7 +35,7 @@ function validateCategoryNameField() {
   const id = document.getElementById('categoryId').value;
   const name = document.getElementById('categoryName').value;
   if (!name.trim()) {
-    setCategoryNameError(null); // let native "required" handle the empty case
+    setCategoryNameError(null);
     return true;
   }
   const trimmed = name.trim().toLowerCase();

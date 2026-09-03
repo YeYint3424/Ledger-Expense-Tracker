@@ -35,10 +35,8 @@ app.use('/api/friends', friendRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/export', exportRoutes);
 
-// Serve the frontend (public/index.html, /public/js/*.js, style.css, etc.)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Attach Socket.IO to the same HTTP server (group chat + direct messages)
 initSockets(httpServer);
 
 const PORT = process.env.PORT || 3000;

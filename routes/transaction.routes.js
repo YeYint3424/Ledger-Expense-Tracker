@@ -8,7 +8,6 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// GET /api/transactions?type=&category=&name=&from=&to=
 router.get('/', async (req, res) => {
   const { type, category, name, from, to } = req.query;
   const query = { userId: req.userId };
@@ -26,22 +25,18 @@ router.get('/', async (req, res) => {
   res.json({ transactions });
 });
 
-// GET /api/transactions/months — distinct 'YYYY-MM' months this user has data for (for month-filter dropdowns)
-// Must be declared before GET /:id so Express doesn't treat "months" as an :id.
 router.get('/months', async (req, res) => {
   const months = await Transaction.distinct('date', { userId: req.userId });
   const distinctMonths = Array.from(new Set(months.map((d) => d.slice(0, 7)))).sort().reverse();
   res.json({ months: distinctMonths });
 });
 
-// GET /api/transactions/:id
 router.get('/:id', async (req, res) => {
   const tx = await Transaction.findOne({ _id: req.params.id, userId: req.userId });
   if (!tx) return res.status(404).json({ error: 'Transaction not found.' });
   res.json({ transaction: tx });
 });
 
-// POST /api/transactions
 router.post('/', async (req, res) => {
   try {
     const { type, name, amount, date, time, description, categoryId } = req.body;
@@ -71,7 +66,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/transactions/:id
 router.put('/:id', async (req, res) => {
   try {
     const { type, name, amount, date, time, description, categoryId } = req.body;
@@ -105,7 +99,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/transactions/:id
 router.delete('/:id', async (req, res) => {
   const tx = await Transaction.findOneAndDelete({ _id: req.params.id, userId: req.userId });
   if (!tx) return res.status(404).json({ error: 'Transaction not found.' });

@@ -18,7 +18,6 @@ async function areFriends(userA, userB) {
   return !!f;
 }
 
-// GET /api/conversations — threads the current user is part of, with a last-message preview
 router.get('/', async (req, res) => {
   const conversations = await Conversation.find({ participants: req.userId }).populate('participants', 'name email');
   const results = await Promise.all(
@@ -42,7 +41,6 @@ router.get('/', async (req, res) => {
   res.json({ conversations: results });
 });
 
-// GET /api/conversations/:id/messages?limit=50
 router.get('/:id/messages', async (req, res) => {
   const convo = await Conversation.findById(req.params.id);
   if (!convo || !convo.participants.some((p) => p.toString() === req.userId)) {
@@ -59,7 +57,6 @@ router.get('/:id/messages', async (req, res) => {
   res.json({ messages: json });
 });
 
-// POST /api/conversations/start  { friendId } — get-or-create a thread with a confirmed friend
 router.post('/start', async (req, res) => {
   const friendId = req.body.friendId;
   if (!friendId) return res.status(400).json({ error: 'friendId is required.' });

@@ -88,7 +88,6 @@ async function deleteTransaction(id) {
   }
 }
 
-/* ---- filter apply / clear / mobile modal ---- */
 function wireFilterControls() {
   [
     "filterName",
@@ -139,7 +138,6 @@ async function applyFilters() {
   document.getElementById("filterBarBackdrop").classList.remove("open");
 }
 
-/* ---- prefill from query params (e.g. linked from a Home category card) ---- */
 function applyQueryParamsToFilters() {
   const params = new URLSearchParams(location.search);
   const type = params.get("type");

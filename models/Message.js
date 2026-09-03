@@ -8,11 +8,8 @@ const messageSchema = new mongoose.Schema(
     senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     text: { type: String, required: true, trim: true },
 
-    // Reply — points at another message in the same chat.
     replyTo: { type: mongoose.Schema.Types.ObjectId, ref: 'Message', default: null },
 
-    // Forward — a snapshot of the original, so it still reads correctly even if
-    // the original message is later edited or deleted.
     forwardedFrom: {
       senderName: { type: String, default: null },
       text: { type: String, default: null },
@@ -21,8 +18,6 @@ const messageSchema = new mongoose.Schema(
     edited: { type: Boolean, default: false },
     editedAt: { type: Date, default: null },
 
-    // Soft delete — the row (and its real text) stays in the database; clients
-    // are only ever shown a "this message was deleted" placeholder.
     deleted: { type: Boolean, default: false },
     deletedAt: { type: Date, default: null },
   },
@@ -37,14 +32,6 @@ messageSchema.set('toJSON', {
     ret.id = ret._id.toString();
     ret.groupId = ret.groupId ? ret.groupId.toString() : null;
     ret.conversationId = ret.conversationId ? ret.conversationId.toString() : null;
-    // senderId is either an unpopulated ObjectId, or a populated User
-    // sub-document. Populated sub-documents are serialized through their
-    // own model's toJSON transform BEFORE this one runs, so a populated
-    // User has already had `_id` renamed to `id` (and deleted) by User's
-    // transform — checking for `._id` here would always miss. Must also
-    // rule out a raw ObjectId with `instanceof`, since BSON's ObjectId
-    // itself carries an internal `.id` Buffer that looks populated by
-    // duck-typing alone.
     if (ret.senderId && typeof ret.senderId === 'object' && !(ret.senderId instanceof mongoose.Types.ObjectId)) {
       const senderIdValue = ret.senderId.id || (ret.senderId._id && ret.senderId._id.toString());
       ret.senderId = { id: senderIdValue, name: ret.senderId.name };
@@ -52,14 +39,10 @@ messageSchema.set('toJSON', {
       ret.senderId = ret.senderId.toString();
     }
 
-    // Sanitize soft-deleted messages: never send the real text to the client.
     if (ret.deleted) {
       ret.text = null;
     }
 
-    // replyTo may be populated (itself a Message doc, already run through
-    // this same transform — so it arrives as {id, senderId: {id, name}, ...})
-    // or a plain ObjectId/string (same ObjectId caveat as senderId above).
     if (ret.replyTo && typeof ret.replyTo === 'object' && !(ret.replyTo instanceof mongoose.Types.ObjectId)) {
       const r = ret.replyTo;
       const rId = r.id || (r._id && r._id.toString());

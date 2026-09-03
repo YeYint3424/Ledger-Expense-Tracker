@@ -99,8 +99,6 @@ outcomeForm.addEventListener("submit", async (e) => {
         showToast("Enter a category name");
         return;
       }
-      // Server creates it, or returns the existing one if the name already exists —
-      // this is what keeps category_localStorage-style data free of duplicates.
       const { category } = await createCategory({
         name: newName,
         color: randomCategoryColor(),

@@ -34,7 +34,6 @@ function confirmModal(options) {
   });
 }
 
-/* ---- fake users ---- */
 const USERS = {
   me: { id: 'user-me', name: 'Me' },
   alice: { id: 'user-alice', name: 'Alice' },
@@ -42,7 +41,6 @@ const USERS = {
 };
 let currentUserId = USERS.me.id;
 
-/* ---- fake in-memory message store, keyed by room id ---- */
 const ROOMS = { GROUP: 'demo-group', DM: 'demo-dm' };
 let idCounter = 100;
 const store = {
@@ -78,7 +76,6 @@ function msg({ sender, text, minutesAgo = 0, replyTo = null, forwardedFrom = nul
 
 function roomKey(scope, id) { return scope === 'group' ? id : id; }
 
-/* ---- fake socket: on/off/emit, simulating a server round-trip ---- */
 const listeners = {};
 function on(event, handler) { (listeners[event] = listeners[event] || []).push(handler); }
 function off(event, handler) {
@@ -88,7 +85,7 @@ function off(event, handler) {
 function fire(event, payload) { (listeners[event] || []).forEach((h) => h(payload)); }
 
 function emit(event, payload) {
-  setTimeout(() => handleEmit(event, payload), 120); // small delay so it feels like a real round trip
+  setTimeout(() => handleEmit(event, payload), 120);
 }
 
 function handleEmit(event, payload) {
@@ -149,11 +146,9 @@ function handleEmit(event, payload) {
 const fakeSocket = { on, off, emit };
 function getSocket() { return fakeSocket; }
 
-/* ---- forward targets: the two demo rooms ---- */
 async function getGroups() { return [{ id: ROOMS.GROUP, name: 'Trip Planning' }]; }
 async function getConversations() { return [{ id: ROOMS.DM, friend: { id: USERS.alice.id, name: 'Alice' } }]; }
 
-/* ---- mount both demo panels ---- */
 let groupHandle = null;
 let dmHandle = null;
 
@@ -187,7 +182,6 @@ function mountPanels() {
   });
 }
 
-/* ---- "viewing as" switcher, to demonstrate edit/delete only showing for your own messages ---- */
 function setViewer(userId, btnEl) {
   currentUserId = userId;
   document.querySelectorAll('.demo-user-switch .btn').forEach((b) => {

@@ -6,11 +6,6 @@ const { requireAuth } = require('../middleware/auth');
 
 router.use(requireAuth);
 
-// GET /api/analytics/summary?months=6&month=2026-03
-// `months` controls the rolling trend window (always the last N months).
-// `month` (optional) scopes totals/byCategory/topCategories to one specific
-// month instead of all-time — the trend charts stay on their rolling window
-// regardless, since a single month doesn't make sense as a "trend."
 router.get('/summary', async (req, res) => {
   try {
     const months = Math.min(Math.max(parseInt(req.query.months) || 6, 1), 24);
@@ -25,7 +20,6 @@ router.get('/summary', async (req, res) => {
     }
     const earliestMonth = monthKeys[0];
 
-    // --- totals (all-time, or scoped to one month if requested) ---
     const totalsMatch = monthFilter
       ? { userId, date: { $gte: `${monthFilter}-01`, $lt: `${monthFilter}-32` } }
       : { userId };
@@ -36,7 +30,6 @@ router.get('/summary', async (req, res) => {
     const totalIncome = totalsAgg.find((t) => t._id === 'income')?.total || 0;
     const totalOutcome = totalsAgg.find((t) => t._id === 'outcome')?.total || 0;
 
-    // --- outcome grouped by category (same scope as totals above) ---
     const byCategoryMatch = monthFilter
       ? { userId, type: 'outcome', date: { $gte: `${monthFilter}-01`, $lt: `${monthFilter}-32` } }
       : { userId, type: 'outcome' };
@@ -55,7 +48,6 @@ router.get('/summary', async (req, res) => {
       total: c.total,
     }));
 
-    // --- monthly income vs outcome trend ---
     const monthlyAgg = await Transaction.aggregate([
       { $match: { userId, date: { $gte: `${earliestMonth}-01` } } },
       {
@@ -77,7 +69,6 @@ router.get('/summary', async (req, res) => {
       outcome: monthlyOutcome[m] || 0,
     }));
 
-    // --- cumulative balance trend (running balance carried in from before the window) ---
     const beforeAgg = await Transaction.aggregate([
       { $match: { userId, date: { $lt: `${earliestMonth}-01` } } },
       { $group: { _id: '$type', total: { $sum: '$amount' } } },

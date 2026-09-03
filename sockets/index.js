@@ -1,3 +1,4 @@
+
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const cookie = require('cookie');
@@ -12,7 +13,6 @@ function isMemberOfGroup(group, userId) {
   return group.members.some((m) => m.userId.toString() === userId.toString());
 }
 
-/** Populates sender name + (if present) a nested reply preview in one place. */
 async function populateMessage(message) {
   await message.populate('senderId', 'name');
   await message.populate({
@@ -23,18 +23,12 @@ async function populateMessage(message) {
   return message;
 }
 
-/**
- * Converts a populated message document to its JSON form and runs it through
- * the same enrichSenderNames() backfill the REST message-history routes use —
- * so a name is guaranteed even if populate() didn't resolve one for some reason.
- */
 async function toEnrichedJSON(message) {
   const json = message.toJSON();
   await enrichSenderNames([json]);
   return json;
 }
 
-/** The Socket.IO room a given message belongs to, for broadcasting edits/deletes. */
 function roomFor(message) {
   return message.scope === 'group' ? `group:${message.groupId}` : `conversation:${message.conversationId}`;
 }
@@ -56,11 +50,6 @@ async function areFriends(userA, userB) {
 function initSockets(httpServer) {
   const io = new Server(httpServer, {
     cors: { origin: true, credentials: true },
-    // Tolerate brief network blips (mobile tab backgrounded, wifi hiccup, Vercel cold start)
-    // without the client falling into a broken "Session ID unknown" state: instead of the
-    // engine.io session being torn down the moment a ping is missed, it's kept alive for a
-    // grace window so a client that comes back can resume the same session and its room
-    // membership (group/conversation joins) instead of having to reconnect from scratch.
     connectionStateRecovery: {
       maxDisconnectionDuration: 2 * 60 * 1000,
       skipMiddlewares: false,
@@ -69,7 +58,6 @@ function initSockets(httpServer) {
     pingInterval: 25000,
   });
 
-  // Auth handshake: read the same httpOnly JWT cookie the REST API uses.
   io.use((socket, next) => {
     try {
       const rawCookie = socket.handshake.headers.cookie || '';
@@ -85,9 +73,6 @@ function initSockets(httpServer) {
   });
 
   io.on('connection', async (socket) => {
-    // Join every room this user belongs to right away, so they get real-time
-    // notifications (new group message, new DM) no matter which page they're
-    // on — not only while the specific chat is open.
     try {
       const groups = await Group.find({ 'members.userId': socket.userId }).select('_id');
       groups.forEach((g) => socket.join(`group:${g._id}`));
@@ -96,8 +81,6 @@ function initSockets(httpServer) {
     } catch (err) {
       console.error('Failed to auto-join rooms for socket', err);
     }
-
-    /* ---- group chat ---- */
 
     socket.on('join-group', async (groupId) => {
       const group = await Group.findById(groupId);
@@ -132,8 +115,6 @@ function initSockets(httpServer) {
       io.to(`group:${groupId}`).emit('group-message', await toEnrichedJSON(message));
     });
 
-    /* ---- direct messages (friends only) ---- */
-
     socket.on('join-conversation', async (conversationId) => {
       const convo = await Conversation.findById(conversationId);
       if (convo && convo.participants.some((p) => p.toString() === socket.userId)) {
@@ -151,7 +132,7 @@ function initSockets(httpServer) {
       if (!convo || !convo.participants.some((p) => p.toString() === socket.userId)) return;
 
       const otherId = convo.participants.find((p) => p.toString() !== socket.userId);
-      if (!(await areFriends(socket.userId, otherId))) return; // unfriended since the thread started — block sending
+      if (!(await areFriends(socket.userId, otherId))) return;
 
       let replyToId = null;
       if (replyTo) {
@@ -170,13 +151,11 @@ function initSockets(httpServer) {
       io.to(`conversation:${conversationId}`).emit('direct-message', await toEnrichedJSON(message));
     });
 
-    /* ---- edit / delete (soft) / forward — works for both group & direct ---- */
-
     socket.on('edit-message', async ({ messageId, text }) => {
       if (!text || !text.trim()) return;
       const message = await Message.findById(messageId);
       if (!message) return;
-      if (message.senderId.toString() !== socket.userId) return; // only the author can edit
+      if (message.senderId.toString() !== socket.userId) return;
       if (message.deleted) return;
 
       message.text = text.trim();
@@ -191,7 +170,7 @@ function initSockets(httpServer) {
     socket.on('delete-message', async ({ messageId }) => {
       const message = await Message.findById(messageId);
       if (!message) return;
-      if (message.senderId.toString() !== socket.userId) return; // only the author can delete their own message
+      if (message.senderId.toString() !== socket.userId) return;
       if (message.deleted) return;
 
       message.deleted = true;
@@ -210,7 +189,6 @@ function initSockets(httpServer) {
       const original = await Message.findById(messageId).populate('senderId', 'name');
       if (!original || original.deleted) return;
 
-      // Requester must actually have access to the source message.
       if (original.scope === 'group') {
         const sourceGroup = await Group.findById(original.groupId);
         if (!sourceGroup || !isMemberOfGroup(sourceGroup, socket.userId)) return;

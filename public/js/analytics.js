@@ -36,7 +36,6 @@ async function renderAnalytics() {
     </div>
   `;
 
-  // --- Pie: outcome by category ---
   const pieEmpty = document.getElementById('pieEmpty');
   const pieCanvas = document.getElementById('chartCategoryPie');
   if (pieChart) pieChart.destroy();
@@ -63,7 +62,6 @@ async function renderAnalytics() {
     });
   }
 
-  // --- Double line: income vs outcome trend ---
   const monthLabels = trend.map((t) => new Date(t.month + '-01').toLocaleDateString(undefined, { month: 'short' }));
   if (trendLineChart) trendLineChart.destroy();
   trendLineChart = new Chart(document.getElementById('chartIncomeOutcomeLine'), {
@@ -92,7 +90,6 @@ async function renderAnalytics() {
     },
   });
 
-  // --- Top spending categories (horizontal bar) ---
   const topCatEmpty = document.getElementById('topCatEmpty');
   const topCatCanvas = document.getElementById('chartTopCategoriesBar');
   if (topCategoriesChart) topCategoriesChart.destroy();
@@ -121,7 +118,6 @@ async function renderAnalytics() {
     });
   }
 
-  // --- Balance trend (cumulative line) ---
   if (balanceLineChart) balanceLineChart.destroy();
   balanceLineChart = new Chart(document.getElementById('chartBalanceLine'), {
     type: 'line',

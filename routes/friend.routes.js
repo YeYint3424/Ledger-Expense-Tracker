@@ -6,7 +6,6 @@ const { requireAuth } = require('../middleware/auth');
 
 router.use(requireAuth);
 
-// GET /api/friends — accepted friends
 router.get('/', async (req, res) => {
   const friendships = await Friendship.find({
     status: 'accepted',
@@ -22,7 +21,6 @@ router.get('/', async (req, res) => {
   res.json({ friends });
 });
 
-// GET /api/friends/requests — incoming + outgoing pending requests
 router.get('/requests', async (req, res) => {
   const incoming = await Friendship.find({ recipient: req.userId, status: 'pending' }).populate('requester', 'name email');
   const outgoing = await Friendship.find({ requester: req.userId, status: 'pending' }).populate('recipient', 'name email');
@@ -38,7 +36,6 @@ router.get('/requests', async (req, res) => {
   });
 });
 
-// POST /api/friends/requests  { email } — send a request
 router.post('/requests', async (req, res) => {
   try {
     const email = (req.body.email || '').trim().toLowerCase();
@@ -57,7 +54,6 @@ router.post('/requests', async (req, res) => {
     if (existing) {
       if (existing.status === 'accepted') return res.status(409).json({ error: 'You are already friends.' });
       if (existing.status === 'pending') return res.status(409).json({ error: 'A friend request is already pending.' });
-      // previously declined — allow re-sending
       existing.status = 'pending';
       existing.requester = req.userId;
       existing.recipient = target._id;
@@ -73,7 +69,6 @@ router.post('/requests', async (req, res) => {
   }
 });
 
-// POST /api/friends/requests/:id/accept — creates the DM conversation too
 router.post('/requests/:id/accept', async (req, res) => {
   const request = await Friendship.findOne({ _id: req.params.id, recipient: req.userId, status: 'pending' });
   if (!request) return res.status(404).json({ error: 'Friend request not found.' });
@@ -87,7 +82,6 @@ router.post('/requests/:id/accept', async (req, res) => {
   res.json({ ok: true, conversationId: convo._id.toString() });
 });
 
-// POST /api/friends/requests/:id/decline
 router.post('/requests/:id/decline', async (req, res) => {
   const request = await Friendship.findOne({ _id: req.params.id, recipient: req.userId, status: 'pending' });
   if (!request) return res.status(404).json({ error: 'Friend request not found.' });
@@ -96,7 +90,6 @@ router.post('/requests/:id/decline', async (req, res) => {
   res.json({ ok: true });
 });
 
-// DELETE /api/friends/:userId — unfriend
 router.delete('/:userId', async (req, res) => {
   const result = await Friendship.findOneAndDelete({
     status: 'accepted',

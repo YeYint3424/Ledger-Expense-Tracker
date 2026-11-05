@@ -1,27 +1,44 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const groupExpenseSchema = new mongoose.Schema(
   {
-    groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', required: true, index: true },
-    paidBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    // References the same personal "categories" table used by personal outcomes —
+    groupId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Group",
+      required: true,
+      index: true,
+    },
+    paidBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    // References the same personal "categories" table used by personal expenses —
     // whichever member adds this expense picks from their own category list.
-    categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
+    categoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
+    },
     name: { type: String, required: true, trim: true },
     amount: { type: Number, required: true, min: 0 },
     date: { type: String, required: true }, // 'YYYY-MM-DD'
     time: { type: String, required: true }, // 'HH:MM'
-    description: { type: String, default: '', trim: true },
+    description: { type: String, default: "", trim: true },
     // Members this expense is split between (evenly). Defaults to the whole group.
-    splitBetween: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    splitBetween: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 groupExpenseSchema.index({ groupId: 1, date: -1, time: -1 });
 
-groupExpenseSchema.set('toJSON', {
+groupExpenseSchema.set("toJSON", {
   transform: (doc, ret) => {
     ret.id = ret._id.toString();
     ret.groupId = ret.groupId.toString();
@@ -33,8 +50,14 @@ groupExpenseSchema.set('toJSON', {
     // more reliable signal than checking for `_id`/`id` — Category's own toJSON transform
     // already renamed `_id` to `id` by the time this runs, so `_id` alone can't be trusted.
     if (ret.categoryId && ret.categoryId.name !== undefined) {
-      const catId = ret.categoryId.id || (ret.categoryId._id && ret.categoryId._id.toString());
-      ret.category = { id: catId, name: ret.categoryId.name, color: ret.categoryId.color };
+      const catId =
+        ret.categoryId.id ||
+        (ret.categoryId._id && ret.categoryId._id.toString());
+      ret.category = {
+        id: catId,
+        name: ret.categoryId.name,
+        color: ret.categoryId.color,
+      };
     } else if (ret.categoryId) {
       ret.category = { id: ret.categoryId.toString(), name: null, color: null };
     } else {
@@ -48,4 +71,4 @@ groupExpenseSchema.set('toJSON', {
   },
 });
 
-module.exports = mongoose.model('GroupExpense', groupExpenseSchema);
+module.exports = mongoose.model("GroupExpense", groupExpenseSchema);

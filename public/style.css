@@ -13,8 +13,8 @@
   --gold-dark: #8e6b20;
   --income: #3e7d53;
   --income-soft: #e3efe6;
-  --outcome: #b0462b;
-  --outcome-soft: #f5e4de;
+  --expense: #b0462b;
+  --expense-soft: #f5e4de;
 
   --font-display: "Fraunces", serif;
   --font-body: "Inter", system-ui, sans-serif;
@@ -321,12 +321,12 @@ a {
   background: var(--income);
   color: #fff;
 }
-.btn-outcome {
-  background: var(--outcome);
+.btn-expense {
+  background: var(--expense);
   color: #fff;
 }
 .btn-danger {
-  background: var(--outcome);
+  background: var(--expense);
   color: #fff;
 }
 .btn-sm {
@@ -344,9 +344,9 @@ a {
   background: var(--paper-050);
 }
 .btn-icon.danger:hover {
-  background: var(--outcome-soft);
-  border-color: var(--outcome);
-  color: var(--outcome);
+  background: var(--expense-soft);
+  border-color: var(--expense);
+  color: var(--expense);
 }
 
 /* FORM FIELDS */
@@ -362,7 +362,7 @@ a {
   color: var(--ink-700);
 }
 .field .req {
-  color: var(--outcome);
+  color: var(--expense);
   margin-left: 2px;
 }
 .field .optional {
@@ -372,7 +372,7 @@ a {
 .field-error {
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--outcome);
+  color: var(--expense);
   align-items: center;
   gap: 5px;
 }
@@ -381,8 +381,8 @@ a {
 }
 .input-invalid,
 .input-invalid:focus {
-  border-color: var(--outcome);
-  background: var(--outcome-soft);
+  border-color: var(--expense);
+  background: var(--expense-soft);
 }
 .field-note {
   font-size: 12.5px;
@@ -461,7 +461,7 @@ a {
   border-color: var(--ink-900);
 }
 
-/* FORM PAGES (add / edit income, outcome, category) */
+/* FORM PAGES (add / edit income, expense, category) */
 .form-card {
   background: var(--paper-100);
   border: 1px solid var(--line);
@@ -526,8 +526,8 @@ a {
 .summary-figure.income {
   color: var(--income);
 }
-.summary-figure.outcome {
-  color: var(--outcome);
+.summary-figure.expense {
+  color: var(--expense);
 }
 
 /* CATEGORY SPEND CARDS (HOME) — signature "ledger tab" card */
@@ -584,7 +584,7 @@ a {
   font-variant-numeric: tabular-nums;
   font-size: 22px;
   font-weight: 600;
-  color: var(--outcome);
+  color: var(--expense);
   text-align: right;
 }
 .tab-card-bar {
@@ -701,8 +701,8 @@ a {
 .ledger-table td.num.income {
   color: var(--income);
 }
-.ledger-table td.num.outcome {
-  color: var(--outcome);
+.ledger-table td.num.expense {
+  color: var(--expense);
 }
 .actions-col {
   text-align: right;
@@ -730,9 +730,9 @@ a {
   background: var(--income-soft);
   color: var(--income);
 }
-.type-badge.outcome {
-  background: var(--outcome-soft);
-  color: var(--outcome);
+.type-badge.expense {
+  background: var(--expense-soft);
+  color: var(--expense);
 }
 .cat-chip {
   display: inline-flex;
@@ -866,8 +866,8 @@ a {
 .fab-income {
   background: var(--income);
 }
-.fab-outcome {
-  background: var(--outcome);
+.fab-expense {
+  background: var(--expense);
 }
 
 /* 
@@ -1132,8 +1132,8 @@ a {
   font-weight: 600;
 }
 .auth-error {
-  background: var(--outcome-soft);
-  color: var(--outcome);
+  background: var(--expense-soft);
+  color: var(--expense);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
   font-size: 13px;
@@ -1269,7 +1269,7 @@ a {
   cursor: pointer;
 }
 .member-badge-remove:hover {
-  background: var(--outcome);
+  background: var(--expense);
   color: #fff;
 }
 
@@ -1292,7 +1292,7 @@ a {
   color: var(--income);
 }
 .balance-amount.negative {
-  color: var(--outcome);
+  color: var(--expense);
 }
 .balance-amount.zero {
   color: var(--ink-500);
@@ -1429,7 +1429,7 @@ a {
 }
 .msg-send-failed {
   opacity: 1;
-  color: var(--outcome);
+  color: var(--expense);
   font-style: normal;
   font-weight: 600;
 }
@@ -1502,9 +1502,9 @@ a {
   border-color: var(--gold);
 }
 .msg-action-danger:hover {
-  background: var(--outcome-soft);
-  color: var(--outcome);
-  border-color: var(--outcome);
+  background: var(--expense-soft);
+  color: var(--expense);
+  border-color: var(--expense);
 }
 
 /* reply banner shown above the input while composing a reply */
@@ -1777,8 +1777,8 @@ a {
   color: var(--gold-dark);
 }
 .category-chip-del:hover {
-  background: var(--outcome-soft);
-  color: var(--outcome);
+  background: var(--expense-soft);
+  color: var(--expense);
 }
 
 /* 
@@ -1806,7 +1806,7 @@ a {
 .confirm-modal {
   background: var(--paper-100);
   border-radius: var(--radius-lg);
-  border-left: 6px solid var(--outcome);
+  border-left: 6px solid var(--expense);
   max-width: 400px;
   width: 100%;
   padding: 24px 24px 20px 24px;

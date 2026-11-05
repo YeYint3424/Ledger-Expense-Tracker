@@ -1,11 +1,11 @@
-const outcomeForm = document.getElementById("outcomeForm");
+const expenseForm = document.getElementById("expenseForm");
 const editId = new URLSearchParams(location.search).get("id");
 let cachedCategories = [];
-wireThousandsInput(document.getElementById("outcomeAmount"));
+wireThousandsInput(document.getElementById("expenseAmount"));
 
-async function populateOutcomeCategorySelect(selectedId) {
+async function populateExpenseCategorySelect(selectedId) {
   cachedCategories = await getCategories();
-  const sel = document.getElementById("outcomeCategorySelect");
+  const sel = document.getElementById("expenseCategorySelect");
   sel.innerHTML =
     '<option value="" disabled>Choose a category…</option>' +
     cachedCategories
@@ -25,10 +25,10 @@ function findCachedDuplicate(name) {
 }
 
 document
-  .getElementById("outcomeCategorySelect")
+  .getElementById("expenseCategorySelect")
   .addEventListener("change", (e) => {
-    const newInput = document.getElementById("outcomeCategoryNew");
-    const note = document.getElementById("outcomeCategoryNewNote");
+    const newInput = document.getElementById("expenseCategoryNew");
+    const note = document.getElementById("expenseCategoryNewNote");
     if (e.target.value === "__new__") {
       newInput.hidden = false;
       newInput.required = true;
@@ -41,8 +41,8 @@ document
     }
   });
 
-document.getElementById("outcomeCategoryNew").addEventListener("input", (e) => {
-  const note = document.getElementById("outcomeCategoryNewNote");
+document.getElementById("expenseCategoryNew").addEventListener("input", (e) => {
+  const note = document.getElementById("expenseCategoryNewNote");
   const dupe = findCachedDuplicate(e.target.value);
   if (dupe) {
     note.textContent = `Matches existing category "${dupe.name}" — that one will be used instead of creating a duplicate.`;
@@ -52,48 +52,48 @@ document.getElementById("outcomeCategoryNew").addEventListener("input", (e) => {
   }
 });
 
-async function loadOutcomeForm() {
+async function loadExpenseForm() {
   let tx = null;
   if (editId) {
     try {
       const found = await getTransaction(editId);
-      if (found.type === "outcome") tx = found;
+      if (found.type === "expense") tx = found;
     } catch (e) {
       tx = null;
     }
   }
-  document.getElementById("outcomeFormTitle").textContent = tx
-    ? "Edit outcome"
-    : "Add outcome";
-  document.title = (tx ? "Edit outcome" : "Add outcome") + " — Ledger";
-  document.getElementById("outcomeId").value = tx ? tx.id : "";
-  document.getElementById("outcomeName").value = tx ? tx.name : "";
+  document.getElementById("expenseFormTitle").textContent = tx
+    ? "Edit expense"
+    : "Add expense";
+  document.title = (tx ? "Edit expense" : "Add expense") + " — Ledger";
+  document.getElementById("expenseId").value = tx ? tx.id : "";
+  document.getElementById("expenseName").value = tx ? tx.name : "";
   setAmountInputValue(
-    document.getElementById("outcomeAmount"),
+    document.getElementById("expenseAmount"),
     tx ? tx.amount : "",
   );
-  document.getElementById("outcomeDate").value = tx ? tx.date : todayISO();
-  document.getElementById("outcomeTime").value = tx ? tx.time : nowTime();
-  document.getElementById("outcomeDescription").value = tx
+  document.getElementById("expenseDate").value = tx ? tx.date : todayISO();
+  document.getElementById("expenseTime").value = tx ? tx.time : nowTime();
+  document.getElementById("expenseDescription").value = tx
     ? tx.description || ""
     : "";
-  await populateOutcomeCategorySelect(tx ? tx.categoryId : "");
-  document.getElementById("outcomeCategoryNew").hidden = true;
-  document.getElementById("outcomeCategoryNew").required = false;
-  document.getElementById("outcomeCategoryNew").value = "";
-  document.getElementById("outcomeCategoryNewNote").hidden = true;
+  await populateExpenseCategorySelect(tx ? tx.categoryId : "");
+  document.getElementById("expenseCategoryNew").hidden = true;
+  document.getElementById("expenseCategoryNew").required = false;
+  document.getElementById("expenseCategoryNew").value = "";
+  document.getElementById("expenseCategoryNewNote").hidden = true;
 }
 
-outcomeForm.addEventListener("submit", async (e) => {
+expenseForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const id = document.getElementById("outcomeId").value;
-  const select = document.getElementById("outcomeCategorySelect");
+  const id = document.getElementById("expenseId").value;
+  const select = document.getElementById("expenseCategorySelect");
   let categoryId = select.value;
 
   try {
     if (categoryId === "__new__") {
       const newName = document
-        .getElementById("outcomeCategoryNew")
+        .getElementById("expenseCategoryNew")
         .value.trim();
       if (!newName) {
         showToast("Enter a category name");
@@ -113,12 +113,12 @@ outcomeForm.addEventListener("submit", async (e) => {
     }
 
     const payload = {
-      type: "outcome",
-      name: document.getElementById("outcomeName").value.trim(),
-      amount: parseAmountInput(document.getElementById("outcomeAmount")),
-      date: document.getElementById("outcomeDate").value,
-      time: document.getElementById("outcomeTime").value,
-      description: document.getElementById("outcomeDescription").value.trim(),
+      type: "expense",
+      name: document.getElementById("expenseName").value.trim(),
+      amount: parseAmountInput(document.getElementById("expenseAmount")),
+      date: document.getElementById("expenseDate").value,
+      time: document.getElementById("expenseTime").value,
+      description: document.getElementById("expenseDescription").value.trim(),
       categoryId,
     };
 
@@ -126,7 +126,7 @@ outcomeForm.addEventListener("submit", async (e) => {
     else await createTransaction(payload);
     location.href = "transactions.html";
   } catch (err) {
-    showToast(err.message || "Failed to save outcome.");
+    showToast(err.message || "Failed to save expense.");
   }
 });
 
@@ -134,7 +134,7 @@ async function init() {
   const user = await requireAuthOrRedirect();
   if (!user) return;
   try {
-    await loadOutcomeForm();
+    await loadExpenseForm();
   } catch (err) {
     showToast(err.message || "Failed to load form.");
   }

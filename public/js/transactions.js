@@ -43,13 +43,13 @@ async function renderTransactionsPage() {
         ? categories.find((c) => c.id === t.categoryId)
         : null;
       const catChip =
-        t.type === "outcome"
+        t.type === "expense"
           ? `<span class="cat-chip"><span class="cat-dot" style="background:${cat ? cat.color : "#8FA096"}"></span>${cat ? escapeHtml(cat.name) : "Uncategorized"}</span>`
           : '<span class="cat-chip" style="color:var(--ink-300)">—</span>';
       const editHref =
         t.type === "income"
           ? `income-form.html?id=${t.id}`
-          : `outcome-form.html?id=${t.id}`;
+          : `expense-form.html?id=${t.id}`;
       return `
       <tr>
         <td>

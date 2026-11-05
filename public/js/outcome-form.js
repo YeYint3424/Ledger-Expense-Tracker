@@ -63,9 +63,9 @@ async function loadOutcomeForm() {
     }
   }
   document.getElementById("outcomeFormTitle").textContent = tx
-    ? "Edit outcome"
-    : "Add outcome";
-  document.title = (tx ? "Edit outcome" : "Add outcome") + " — Ledger";
+    ? "Edit expense"
+    : "Add expense";
+  document.title = (tx ? "Edit expense" : "Add expense") + " — Ledger";
   document.getElementById("outcomeId").value = tx ? tx.id : "";
   document.getElementById("outcomeName").value = tx ? tx.name : "";
   setAmountInputValue(
@@ -126,7 +126,7 @@ outcomeForm.addEventListener("submit", async (e) => {
     else await createTransaction(payload);
     location.href = "transactions.html";
   } catch (err) {
-    showToast(err.message || "Failed to save outcome.");
+    showToast(err.message || "Failed to save expense.");
   }
 });
 

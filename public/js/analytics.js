@@ -27,7 +27,7 @@ async function renderAnalytics() {
       <div class="summary-figure income">${formatMoney(totals.income)}</div>
     </div>
     <div class="summary-card" style="--card-accent:var(--outcome)">
-      <div class="summary-label">Total outcome</div>
+      <div class="summary-label">Total expense</div>
       <div class="summary-figure outcome">${formatMoney(totals.outcome)}</div>
     </div>
     <div class="summary-card" style="--card-accent:var(--gold)">
@@ -76,7 +76,7 @@ async function renderAnalytics() {
           tension: 0.3, pointRadius: 4, pointBackgroundColor: '#3E7D53', fill: false,
         },
         {
-          label: 'Outcome', data: trend.map((t) => t.outcome), borderColor: '#B0462B', backgroundColor: '#B0462B',
+          label: 'Expense', data: trend.map((t) => t.outcome), borderColor: '#B0462B', backgroundColor: '#B0462B',
           tension: 0.3, pointRadius: 4, pointBackgroundColor: '#B0462B', fill: false,
         },
       ],

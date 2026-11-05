@@ -26,7 +26,7 @@ async function renderHome() {
       <div class="summary-figure income">${formatMoney(totalIncome)}</div>
     </div>
     <div class="summary-card" style="--card-accent:var(--outcome)">
-      <div class="summary-label">Total outcome</div>
+      <div class="summary-label">Total expense</div>
       <div class="summary-figure outcome">${formatMoney(totalOutcome)}</div>
     </div>
     <div class="summary-card" style="--card-accent:var(--gold)">
